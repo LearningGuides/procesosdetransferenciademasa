@@ -1,0 +1,1133 @@
+<div id="p5-container"></div>
+
+<script>
+  import p5 from "p5";
+
+  const container = document.querySelector("#p5-container");
+
+  if (!(container instanceof HTMLElement)) {
+    throw new Error("No se encontró el contenedor de p5");
+  }
+
+  const sketch = (p) => {
+    /*
+      Flujo molar de una especie en una mezcla binaria
+
+      N_A = y_A (N_A + N_B) - C D_AB dy_A/dz
+
+      Definiendo:
+
+      N_T = N_A + N_B
+
+      se obtiene:
+
+      N_A = y_A N_T + J_A
+
+      donde:
+
+      J_A = -C D_AB dy_A/dz
+
+      Interpretación:
+
+      y_A N_T  → contribución convectiva
+      J_A       → contribución difusiva
+      N_A       → flujo total de la especie A
+    */
+
+    const DOMAIN = {
+      x: 50,
+      y: 175,
+      w: 1000,
+      h: 185
+    };
+
+    const NUM_CELLS = 120;
+    const NUM_PARTICLES = 950;
+
+    let particles = [];
+
+    let moleFraction = [];
+    let gradient = [];
+    let convectiveFlux = [];
+    let diffusiveFlux = [];
+    let totalFluxA = [];
+    let totalFluxB = [];
+
+    let totalFluxSlider;
+    let diffusionSlider;
+    let concentrationSlider;
+    let leftFractionSlider;
+    let rightFractionSlider;
+    let probeSlider;
+
+    let pauseButton;
+    let resetButton;
+
+    let paused = false;
+    let simulationTime = 0;
+
+    const CONTROL_X = {
+      totalFlux: 145,
+      diffusion: 400,
+      concentration: 660,
+      leftFraction: 145,
+      rightFraction: 455,
+      probe: 750
+    };
+
+    p.setup = () => {
+      const canvas = p.createCanvas(1100, 1020);
+      canvas.parent(container);
+
+      totalFluxSlider = createSlider(
+        -2,
+        2,
+        0.8,
+        0.05,
+        CONTROL_X.totalFlux,
+        52,
+        145
+      );
+
+      diffusionSlider = createSlider(
+        0,
+        2,
+        0.45,
+        0.05,
+        CONTROL_X.diffusion,
+        52,
+        145
+      );
+
+      concentrationSlider = createSlider(
+        0.2,
+        2,
+        1,
+        0.05,
+        CONTROL_X.concentration,
+        52,
+        145
+      );
+
+      leftFractionSlider = createSlider(
+        0.02,
+        0.98,
+        0.8,
+        0.01,
+        CONTROL_X.leftFraction,
+        98,
+        180
+      );
+
+      rightFractionSlider = createSlider(
+        0.02,
+        0.98,
+        0.2,
+        0.01,
+        CONTROL_X.rightFraction,
+        98,
+        180
+      );
+
+      probeSlider = createSlider(
+        0,
+        NUM_CELLS - 1,
+        Math.floor(NUM_CELLS / 2),
+        1,
+        CONTROL_X.probe,
+        98,
+        200
+      );
+
+      pauseButton = p.createButton("Pausar");
+      pauseButton.parent(container);
+      pauseButton.position(850, 45);
+      pauseButton.mousePressed(togglePause);
+
+      resetButton = p.createButton("Reiniciar");
+      resetButton.parent(container);
+      resetButton.position(935, 45);
+      resetButton.mousePressed(resetSimulation);
+
+      initializeArrays();
+      resetSimulation();
+    };
+
+    p.draw = () => {
+      p.background(245);
+
+      const NT = Number(totalFluxSlider.value());
+      const DAB = Number(diffusionSlider.value());
+      const C = Number(concentrationSlider.value());
+      const yLeft = Number(leftFractionSlider.value());
+      const yRight = Number(rightFractionSlider.value());
+
+      const dt = p.min(p.deltaTime / 1000, 0.04);
+
+      calculateProfile(yLeft, yRight);
+      calculateFluxes(NT, DAB, C);
+
+      if (!paused) {
+        updateParticles(NT, DAB, C, dt);
+        simulationTime += dt;
+      }
+
+      drawHeader(NT, DAB, C, yLeft, yRight);
+      drawParticleDomain(NT, DAB, C);
+      drawGraphs();
+      drawProbePanel(NT, DAB, C);
+    };
+
+    function createSlider(
+      minimum,
+      maximum,
+      initial,
+      step,
+      x,
+      y,
+      width
+    ) {
+      const slider = p.createSlider(
+        minimum,
+        maximum,
+        initial,
+        step
+      );
+
+      slider.parent(container);
+      slider.position(x, y);
+      slider.size(width);
+
+      return slider;
+    }
+
+    function initializeArrays() {
+      moleFraction = new Array(NUM_CELLS).fill(0);
+      gradient = new Array(NUM_CELLS).fill(0);
+      convectiveFlux = new Array(NUM_CELLS).fill(0);
+      diffusiveFlux = new Array(NUM_CELLS).fill(0);
+      totalFluxA = new Array(NUM_CELLS).fill(0);
+      totalFluxB = new Array(NUM_CELLS).fill(0);
+    }
+
+    function resetSimulation() {
+      particles = [];
+      simulationTime = 0;
+      paused = false;
+
+      if (pauseButton) {
+        pauseButton.html("Pausar");
+      }
+
+      const yLeft = leftFractionSlider
+        ? Number(leftFractionSlider.value())
+        : 0.8;
+
+      const yRight = rightFractionSlider
+        ? Number(rightFractionSlider.value())
+        : 0.2;
+
+      for (let i = 0; i < NUM_PARTICLES; i++) {
+        const normalizedPosition = p.random();
+        const localYA = p.lerp(
+          yLeft,
+          yRight,
+          normalizedPosition
+        );
+
+        particles.push({
+          x: DOMAIN.x + normalizedPosition * DOMAIN.w,
+          y: p.random(
+            DOMAIN.y + 26,
+            DOMAIN.y + DOMAIN.h - 18
+          ),
+          species: p.random() < localYA ? "A" : "B",
+          diameter: p.random(3, 6),
+          verticalPhase: p.random(p.TWO_PI)
+        });
+      }
+
+      initializeArrays();
+    }
+
+    function togglePause() {
+      paused = !paused;
+      pauseButton.html(paused ? "Continuar" : "Pausar");
+    }
+
+    function calculateProfile(yLeft, yRight) {
+      const domainLength = 1;
+      const dz = domainLength / (NUM_CELLS - 1);
+      const constantGradient =
+        (yRight - yLeft) / domainLength;
+
+      for (let i = 0; i < NUM_CELLS; i++) {
+        const normalizedPosition =
+          i / (NUM_CELLS - 1);
+
+        moleFraction[i] = p.lerp(
+          yLeft,
+          yRight,
+          normalizedPosition
+        );
+
+        gradient[i] = constantGradient;
+      }
+    }
+
+    function calculateFluxes(NT, DAB, C) {
+      for (let i = 0; i < NUM_CELLS; i++) {
+        const yA = moleFraction[i];
+
+        /*
+          Transporte de A debido al movimiento
+          promedio de toda la mezcla.
+        */
+        convectiveFlux[i] = yA * NT;
+
+        /*
+          Ley de Fick:
+
+          J_A = -C D_AB dy_A/dz
+        */
+        diffusiveFlux[i] =
+          -C * DAB * gradient[i];
+
+        /*
+          Flujo molar total de A.
+        */
+        totalFluxA[i] =
+          convectiveFlux[i] +
+          diffusiveFlux[i];
+
+        /*
+          J_B = -J_A
+
+          N_B = (1-y_A)N_T + C D_AB dy_A/dz
+        */
+        totalFluxB[i] =
+          (1 - yA) * NT -
+          diffusiveFlux[i];
+      }
+    }
+
+    function updateParticles(NT, DAB, C, dt) {
+      const cellWidth = DOMAIN.w / NUM_CELLS;
+
+      /*
+        N_T = C v_m
+
+        Por tanto, la velocidad molar promedio es:
+
+        v_m = N_T/C
+      */
+      const bulkVelocity = NT / p.max(C, 0.01);
+
+      const bulkVisualScale = 65;
+      const diffusionVisualScale = 20;
+      const randomScale = 4;
+
+      for (const particle of particles) {
+        let cell = p.floor(
+          (particle.x - DOMAIN.x) / cellWidth
+        );
+
+        cell = p.constrain(
+          cell,
+          0,
+          NUM_CELLS - 1
+        );
+
+        const localYA = p.constrain(
+          moleFraction[cell],
+          0.04,
+          0.96
+        );
+
+        const localGradient = gradient[cell];
+
+        /*
+          Velocidades ilustrativas de cada especie.
+
+          Para A:
+
+          N_A = C y_A v_A
+
+          v_A = N_A/(C y_A)
+              = v_m - D_AB/y_A · dy_A/dz
+
+          Para B:
+
+          v_B = v_m + D_AB/(1-y_A) · dy_A/dz
+        */
+        let diffusionVelocity;
+
+        if (particle.species === "A") {
+          diffusionVelocity =
+            -DAB * localGradient / localYA;
+        } else {
+          diffusionVelocity =
+            DAB *
+            localGradient /
+            (1 - localYA);
+        }
+
+        diffusionVelocity = p.constrain(
+          diffusionVelocity,
+          -3,
+          3
+        );
+
+        const brownianMotion =
+          p.randomGaussian() *
+          p.sqrt(p.max(DAB, 0) * dt) *
+          randomScale;
+
+        particle.x +=
+          bulkVelocity * bulkVisualScale * dt +
+          diffusionVelocity *
+            diffusionVisualScale *
+            dt +
+          brownianMotion;
+
+        particle.verticalPhase += 2.3 * dt;
+
+        particle.y +=
+          p.sin(particle.verticalPhase) *
+          0.25;
+
+        /*
+          Condiciones periódicas únicamente para
+          mantener partículas visibles.
+        */
+        if (particle.x > DOMAIN.x + DOMAIN.w) {
+          particle.x -= DOMAIN.w;
+        }
+
+        if (particle.x < DOMAIN.x) {
+          particle.x += DOMAIN.w;
+        }
+      }
+    }
+
+    function drawHeader(
+      NT,
+      DAB,
+      C,
+      yLeft,
+      yRight
+    ) {
+      p.fill(20);
+      p.noStroke();
+
+      p.textSize(21);
+      p.textStyle(p.BOLD);
+      p.text(
+        "Flujo molar de una especie en una mezcla binaria",
+        40,
+        29
+      );
+
+      p.textStyle(p.NORMAL);
+      p.textSize(13);
+
+      p.text("Flujo total Nₜ:", 40, 66);
+      p.text(p.nf(NT, 1, 2), 300, 66);
+
+      p.text("Difusividad Dₐᵦ:", 315, 66);
+      p.text(p.nf(DAB, 1, 2), 560, 66);
+
+      p.text("Concentración C:", 575, 66);
+      p.text(p.nf(C, 1, 2), 815, 66);
+
+      p.text("yₐ en z = 0:", 40, 112);
+      p.text(p.nf(yLeft, 1, 2), 335, 112);
+
+      p.text("yₐ en z = L:", 350, 112);
+      p.text(p.nf(yRight, 1, 2), 645, 112);
+
+      p.text("Punto de medición:", 660, 112);
+
+      p.fill(55);
+      p.textSize(14);
+      p.textStyle(p.BOLD);
+
+      p.text(
+        "Nₐ = yₐNₜ − C Dₐᵦ dyₐ/dz",
+        40,
+        148
+      );
+
+      p.textStyle(p.NORMAL);
+      p.textSize(12);
+
+      p.text(
+        "convección",
+        178,
+        166
+      );
+
+      p.text(
+        "difusión molecular",
+        300,
+        166
+      );
+    }
+
+    function drawParticleDomain(NT, DAB, C) {
+      const selectedCell =
+        Number(probeSlider.value());
+
+      const cellWidth =
+        DOMAIN.w / NUM_CELLS;
+
+      p.stroke(40);
+      p.strokeWeight(2);
+      p.fill(255);
+
+      p.rect(
+        DOMAIN.x,
+        DOMAIN.y,
+        DOMAIN.w,
+        DOMAIN.h
+      );
+
+      /*
+        Línea divisoria de referencia.
+      */
+      p.stroke(225);
+      p.strokeWeight(1);
+
+      for (let i = 10; i < NUM_CELLS; i += 10) {
+        const x =
+          DOMAIN.x + i * cellWidth;
+
+        p.line(
+          x,
+          DOMAIN.y,
+          x,
+          DOMAIN.y + DOMAIN.h
+        );
+      }
+
+      /*
+        Celda seleccionada.
+      */
+      p.noStroke();
+      p.fill(255, 205, 40, 75);
+
+      p.rect(
+        DOMAIN.x + selectedCell * cellWidth,
+        DOMAIN.y,
+        cellWidth,
+        DOMAIN.h
+      );
+
+      /*
+        Partículas de A y B.
+      */
+      for (const particle of particles) {
+        if (particle.species === "A") {
+          p.fill(35, 115, 225, 175);
+        } else {
+          p.fill(235, 125, 40, 165);
+        }
+
+        p.noStroke();
+
+        p.circle(
+          particle.x,
+          particle.y,
+          particle.diameter
+        );
+      }
+
+      drawFluxArrows(NT, DAB, C);
+
+      p.fill(35);
+      p.noStroke();
+      p.textSize(12);
+
+      p.text(
+        "z = 0",
+        DOMAIN.x,
+        DOMAIN.y + DOMAIN.h + 20
+      );
+
+      p.text(
+        "z = L",
+        DOMAIN.x + DOMAIN.w - 28,
+        DOMAIN.y + DOMAIN.h + 20
+      );
+
+      p.fill(35, 115, 225);
+      p.circle(
+        DOMAIN.x + 350,
+        DOMAIN.y + DOMAIN.h + 17,
+        8
+      );
+
+      p.fill(45);
+      p.text(
+        "Especie A",
+        DOMAIN.x + 360,
+        DOMAIN.y + DOMAIN.h + 21
+      );
+
+      p.fill(235, 125, 40);
+      p.circle(
+        DOMAIN.x + 450,
+        DOMAIN.y + DOMAIN.h + 17,
+        8
+      );
+
+      p.fill(45);
+      p.text(
+        "Especie B",
+        DOMAIN.x + 460,
+        DOMAIN.y + DOMAIN.h + 21
+      );
+
+      p.text(
+        "Tiempo ilustrativo: " +
+          p.nf(simulationTime, 1, 2) +
+          " s",
+        DOMAIN.x + 670,
+        DOMAIN.y + DOMAIN.h + 21
+      );
+    }
+
+    function drawFluxArrows(NT, DAB, C) {
+      const selectedCell =
+        Number(probeSlider.value());
+
+      const yA = moleFraction[selectedCell];
+      const convective =
+        convectiveFlux[selectedCell];
+      const diffusive =
+        diffusiveFlux[selectedCell];
+      const total =
+        totalFluxA[selectedCell];
+
+      drawArrow(
+        DOMAIN.x + 500,
+        DOMAIN.y + 30,
+        convective * 75,
+        "yₐNₜ",
+        p.color(40, 150, 75)
+      );
+
+      drawArrow(
+        DOMAIN.x + 500,
+        DOMAIN.y + 65,
+        diffusive * 75,
+        "−CDₐᵦ dyₐ/dz",
+        p.color(145, 70, 180)
+      );
+
+      drawArrow(
+        DOMAIN.x + 500,
+        DOMAIN.y + 105,
+        total * 75,
+        "Nₐ",
+        p.color(30, 95, 215)
+      );
+
+      p.fill(60);
+      p.noStroke();
+      p.textSize(11);
+
+      p.text(
+        "Las flechas corresponden a la posición seleccionada",
+        DOMAIN.x + 20,
+        DOMAIN.y + DOMAIN.h - 12
+      );
+    }
+
+    function drawArrow(
+      startX,
+      y,
+      requestedLength,
+      label,
+      arrowColor
+    ) {
+      const length = p.constrain(
+        requestedLength,
+        -210,
+        210
+      );
+
+      const endX = startX + length;
+
+      p.stroke(arrowColor);
+      p.strokeWeight(4);
+
+      p.line(startX, y, endX, y);
+
+      if (p.abs(length) > 3) {
+        const direction = length > 0 ? 1 : -1;
+
+        p.line(
+          endX,
+          y,
+          endX - direction * 10,
+          y - 6
+        );
+
+        p.line(
+          endX,
+          y,
+          endX - direction * 10,
+          y + 6
+        );
+      }
+
+      p.noStroke();
+      p.fill(arrowColor);
+      p.textSize(11);
+
+      p.text(
+        label,
+        length >= 0 ? endX + 8 : endX - 95,
+        y + 4
+      );
+    }
+
+    function drawGraphs() {
+      drawGraph(
+        {
+          x: 40,
+          y: 425,
+          w: 320,
+          h: 135
+        },
+        "Fracción molar yₐ(z)",
+        moleFraction,
+        false,
+        0,
+        1
+      );
+
+      drawGraph(
+        {
+          x: 390,
+          y: 425,
+          w: 320,
+          h: 135
+        },
+        "Gradiente dyₐ/dz",
+        gradient,
+        true
+      );
+
+      drawGraph(
+        {
+          x: 740,
+          y: 425,
+          w: 320,
+          h: 135
+        },
+        "Convección yₐNₜ",
+        convectiveFlux,
+        true
+      );
+
+      drawGraph(
+        {
+          x: 40,
+          y: 630,
+          w: 320,
+          h: 135
+        },
+        "Difusión −CDₐᵦ dyₐ/dz",
+        diffusiveFlux,
+        true
+      );
+
+      drawGraph(
+        {
+          x: 390,
+          y: 630,
+          w: 320,
+          h: 135
+        },
+        "Flujo total de A: Nₐ",
+        totalFluxA,
+        true
+      );
+
+      drawGraph(
+        {
+          x: 740,
+          y: 630,
+          w: 320,
+          h: 135
+        },
+        "Flujo total de B: Nᵦ",
+        totalFluxB,
+        true
+      );
+    }
+
+    function drawGraph(
+      graph,
+      title,
+      values,
+      centered,
+      forcedMinimum = null,
+      forcedMaximum = null
+    ) {
+      p.fill(255);
+      p.stroke(55);
+      p.strokeWeight(1);
+
+      p.rect(
+        graph.x,
+        graph.y,
+        graph.w,
+        graph.h
+      );
+
+      p.fill(20);
+      p.noStroke();
+      p.textSize(12);
+      p.textStyle(p.BOLD);
+
+      p.text(
+        title,
+        graph.x,
+        graph.y - 10
+      );
+
+      p.textStyle(p.NORMAL);
+
+      let minimumValue;
+      let maximumValue;
+
+      if (
+        forcedMinimum !== null &&
+        forcedMaximum !== null
+      ) {
+        minimumValue = forcedMinimum;
+        maximumValue = forcedMaximum;
+      } else if (centered) {
+        const maximumAbsolute = p.max(
+          0.001,
+          p.max(
+            values.map((value) =>
+              p.abs(value)
+            )
+          )
+        );
+
+        minimumValue = -maximumAbsolute;
+        maximumValue = maximumAbsolute;
+      } else {
+        minimumValue = p.min(values);
+        maximumValue = p.max(values);
+
+        if (
+          p.abs(maximumValue - minimumValue) <
+          0.001
+        ) {
+          maximumValue += 0.5;
+          minimumValue -= 0.5;
+        }
+      }
+
+      if (
+        minimumValue <= 0 &&
+        maximumValue >= 0
+      ) {
+        const zeroY = p.map(
+          0,
+          minimumValue,
+          maximumValue,
+          graph.y + graph.h,
+          graph.y
+        );
+
+        p.stroke(190);
+        p.strokeWeight(1);
+
+        p.line(
+          graph.x,
+          zeroY,
+          graph.x + graph.w,
+          zeroY
+        );
+      }
+
+      const selectedCell =
+        Number(probeSlider.value());
+
+      const selectedX = p.map(
+        selectedCell,
+        0,
+        NUM_CELLS - 1,
+        graph.x,
+        graph.x + graph.w
+      );
+
+      p.stroke(225, 175, 20);
+      p.strokeWeight(2);
+
+      p.line(
+        selectedX,
+        graph.y,
+        selectedX,
+        graph.y + graph.h
+      );
+
+      p.stroke(35, 115, 220);
+      p.strokeWeight(2);
+      p.noFill();
+
+      p.beginShape();
+
+      for (let i = 0; i < values.length; i++) {
+        const x = p.map(
+          i,
+          0,
+          values.length - 1,
+          graph.x,
+          graph.x + graph.w
+        );
+
+        const y = p.map(
+          values[i],
+          minimumValue,
+          maximumValue,
+          graph.y + graph.h,
+          graph.y
+        );
+
+        p.vertex(x, y);
+      }
+
+      p.endShape();
+
+      p.fill(80);
+      p.noStroke();
+      p.textSize(9);
+
+      p.text(
+        p.nf(maximumValue, 1, 3),
+        graph.x + 3,
+        graph.y + 10
+      );
+
+      p.text(
+        p.nf(minimumValue, 1, 3),
+        graph.x + 3,
+        graph.y + graph.h - 4
+      );
+
+      p.text(
+        "z",
+        graph.x + graph.w - 8,
+        graph.y + graph.h + 14
+      );
+    }
+
+    function drawProbePanel(NT, DAB, C) {
+      const cell =
+        Number(probeSlider.value());
+
+      const z =
+        cell / (NUM_CELLS - 1);
+
+      const yA = moleFraction[cell];
+      const localGradient = gradient[cell];
+      const convection =
+        convectiveFlux[cell];
+      const diffusion =
+        diffusiveFlux[cell];
+      const NA = totalFluxA[cell];
+      const NB = totalFluxB[cell];
+
+      p.fill(255);
+      p.stroke(65);
+      p.strokeWeight(1);
+
+      p.rect(
+        40,
+        825,
+        1020,
+        155,
+        6
+      );
+
+      p.fill(20);
+      p.noStroke();
+      p.textSize(14);
+      p.textStyle(p.BOLD);
+
+      p.text(
+        "Evaluación de la ecuación en la posición seleccionada",
+        55,
+        850
+      );
+
+      p.textStyle(p.NORMAL);
+      p.textSize(12);
+
+      p.text(
+        "z/L = " + p.nf(z, 1, 3),
+        55,
+        882
+      );
+
+      p.text(
+        "yₐ = " + p.nf(yA, 1, 3),
+        150,
+        882
+      );
+
+      p.text(
+        "dyₐ/dz = " +
+          p.nf(localGradient, 1, 3),
+        245,
+        882
+      );
+
+      p.text(
+        "Nₜ = Nₐ + Nᵦ = " +
+          p.nf(NT, 1, 3),
+        420,
+        882
+      );
+
+      p.text(
+        "C = " + p.nf(C, 1, 2),
+        650,
+        882
+      );
+
+      p.text(
+        "Dₐᵦ = " + p.nf(DAB, 1, 2),
+        760,
+        882
+      );
+
+      p.fill(40, 145, 70);
+      p.textStyle(p.BOLD);
+
+      p.text(
+        "Convección:",
+        55,
+        920
+      );
+
+      p.textStyle(p.NORMAL);
+      p.fill(25);
+
+      p.text(
+        "yₐNₜ = " +
+          p.nf(yA, 1, 3) +
+          " × " +
+          p.nf(NT, 1, 3) +
+          " = " +
+          p.nf(convection, 1, 4),
+        145,
+        920
+      );
+
+      p.fill(140, 65, 175);
+      p.textStyle(p.BOLD);
+
+      p.text(
+        "Difusión:",
+        470,
+        920
+      );
+
+      p.textStyle(p.NORMAL);
+      p.fill(25);
+
+      p.text(
+        "−CDₐᵦ dyₐ/dz = " +
+          p.nf(diffusion, 1, 4),
+        545,
+        920
+      );
+
+      p.fill(30, 95, 215);
+      p.textStyle(p.BOLD);
+
+      p.text(
+        "Resultado:",
+        55,
+        956
+      );
+
+      p.textStyle(p.NORMAL);
+      p.fill(25);
+
+      p.text(
+        "Nₐ = " +
+          p.nf(convection, 1, 4) +
+          " + " +
+          p.nf(diffusion, 1, 4) +
+          " = " +
+          p.nf(NA, 1, 4),
+        135,
+        956
+      );
+
+      p.text(
+        "Nᵦ = " + p.nf(NB, 1, 4),
+        525,
+        956
+      );
+
+      p.text(
+        "Comprobación: Nₐ + Nᵦ = " +
+          p.nf(NA + NB, 1, 4),
+        700,
+        956
+      );
+    }
+  };
+
+  const instance = new p5(sketch, container);
+
+  document.addEventListener(
+    "astro:before-swap",
+    () => {
+      instance.remove();
+    },
+    { once: true }
+  );
+</script>
+
+<style>
+  #p5-container {
+    position: relative;
+    width: 1100px;
+    height: 1020px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  #p5-container :global(canvas) {
+    display: block;
+    max-width: none;
+  }
+
+  #p5-container :global(input[type="range"]) {
+    cursor: pointer;
+  }
+
+  #p5-container :global(button) {
+    padding: 6px 12px;
+    border: 1px solid #777;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+  }
+
+  #p5-container :global(button:hover) {
+    background: #eeeeee;
+  }
+</style>

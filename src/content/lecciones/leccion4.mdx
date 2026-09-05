@@ -1,0 +1,162 @@
+---
+title: Ejercicios de Difusion
+lessonNumber: 4
+
+---
+
+
+import Desmos from "../../components/desmos/Wilke–Lee.astro";
+
+$$
+D_{AB}
+=
+
+\frac{
+10^{-4}
+\left[
+1.084
+-
+
+0.249
+\sqrt{
+\frac{1}{M_A}+\frac{1}{M_B}
+}
+\right]
+T^{3/2}
+\sqrt{
+\frac{1}{M_A}+\frac{1}{M_B}
+}
+}{
+Pr_{AB}^{2}
+f\left(\dfrac{kT}{\varepsilon_{AB}}\right)
+}
+$$
+
+
+$$
+r_{AB}=\frac{r_A+r_B}{2}
+$$
+
+$$
+\varepsilon_{AB}
+=
+
+\sqrt{\varepsilon_A\varepsilon_B}
+$$
+
+Cuando no se dispone de los parámetros moleculares, pueden estimarse mediante
+
+$$
+r=1.18\ v^{1/3}
+$$
+$$
+\frac{\varepsilon}{k}=1.21\ T_b
+$$
+
+donde:
+
+* $v$ es el volumen molar del líquido en su punto normal de ebullición;
+* $T_b$ es la temperatura normal de ebullición en kelvin.
+
+<Desmos/>
+
+## Ejercicio 1.
+> En una mezcla gaseosa de oxígeno y nitrógeno, a una presión de **1 atm** y una temperatura de **25 °C**, las concentraciones de oxígeno en dos planos separados por una distancia de **2 mm** son de **10 % y 20 % en volumen**, respectivamente.
+> 
+> Calcule el **flujo molar de difusión del oxígeno** para los siguientes casos:
+> 
+> **a)** El nitrógeno no se difunde.
+> 
+> $$
+> N_{O_2}=4.97\times10^{-5}\ \text{kmol}/(\text{m}^2\cdot\text{s})
+> $$
+> 
+> **b)** Existe contradifusión equimolar entre el oxígeno y el nitrógeno.
+
+## Ejercicio 2. 
+> Calcule las difusividad: Acetona-aire, 1 atm., 0 °C.
+
+## Ejercicio 3.
+> Se está difundiendo amoníaco (NH₃) a través de una mezcla gaseosa estancada compuesta por **un tercio de nitrógeno (N₂)** y **dos tercios de hidrógeno (H₂)** en volumen. La presión total del sistema es de **30 lbf/in² abs (206.8 kPa)** y la temperatura es de **130 °F (54 °C)**.
+>
+> Determine la **rapidez de difusión del amoníaco** a través de una película gaseosa de **0.5 mm de espesor**, si la concentración de amoníaco disminuye desde **10 % hasta 5 % en volumen** a través de la película.
+>
+> **Respuesta esperada:**
+>
+> $$
+> N_{NH_3}=2.05\times10^{-4}\ \text{kmol}/(\text{m}^2\cdot\text{s})
+> $$
+
+
+
+$$
+D_{A,m}
+=
+
+\frac{1}
+{\displaystyle\sum_{\substack{i=1,i\neq A}}^{n}
+\frac{y_i'}{D_{Ai}}}
+$$
+$$
+y_i'=\frac{y_i}{1-y_A}
+$$
+
+## Ejercicio 4.
+> Calcule la difusividad líquida del Tetracloruro de carbono en solución diluida en alcohol metílico, **15 °C** *(valor observado = 1.69 × 10⁻⁵ cm²/s)*.
+>
+> **Respuesta:** **1.49 × 10⁻⁹ m²/s**.
+
+## Ejercicio 5
+
+> Se está fraccionando amoniaco sobre un catalizador sólido de acuerdo con la reacción:
+> 
+> $$
+> 2NH_3 \rightarrow N_2 + 3H_2
+> $$
+> 
+> En cierta zona del aparato, donde la presión es de 1 atm y la temperatura es de 200 °C, el análisis del gas es:
+> 
+> * 33.33 % de $NH_3$ (A)
+> * 16.67 % de $N_2$ (B)
+> * 50.00 % de $H_2$ (C)
+> 
+> en volumen.
+> 
+> Las condiciones son tales que el $NH_3$ se difunde desde la corriente gaseosa hasta la superficie del catalizador. Además, los productos de la reacción se difunden en sentido contrario, como si hubiera difusión molecular a través de una película gaseosa de 1 mm de espesor, bajo régimen laminar.
+> 
+> Calcular la rapidez local de fraccionamiento, en kg de $NH_3/(m^2\cdot s)$, que se presentaría si la reacción estuviera controlada por difusión —velocidad de reacción química muy rápida—, con la concentración de $NH_3$ sobre la superficie del catalizador igual a cero.
+> 
+> **Respuesta:**
+> 
+> $$
+> 0.0138\ \text{kg de } NH_3/(m^2\cdot s)
+> $$
+
+## Ejercicio 6
+> Un cristal de sulfato de cobre pentahidratado, $CuSO_4\cdot5H_2O$, cae en un tanque grande de agua pura a 20 °C.
+> 
+> Calcule la rapidez con la cual se disuelve el cristal y el flux de $CuSO_4$ desde la superficie del cristal hacia la solución. Hágase lo mismo, pero calculando ahora el flux del agua.
+> 
+> **Datos y suposiciones:**
+> 
+> La difusión molecular ocurre a través de una película uniforme de agua, de 0.0305 mm de espesor, que rodea al cristal.
+> 
+> En la parte interna de la película, adyacente a la superficie del cristal, la concentración de sulfato de cobre corresponde a su solubilidad:
+> 
+> $$
+> x_{CuSO_4}=0.0229
+> $$
+> 
+> La densidad de la solución es:
+> 
+> $$
+> \rho=1193\ \text{kg/m}^3
+> $$
+> 
+> La superficie externa de la película está en contacto con agua pura.
+> 
+> La difusividad del $CuSO_4$ es:
+> 
+> $$
+> D_{CuSO_4-H_2O}=7.29\times10^{-10}\ \text{m}^2/\text{s}
+> $$

@@ -1,0 +1,313 @@
+---
+interface Props {
+  total?: number;
+  altura?: number;
+}
+
+const {
+  total = 200,
+  altura = 500,
+} = Astro.props;
+
+const id = `difusion-${crypto.randomUUID()}`;
+---
+
+<section
+  id={id}
+  class="difusion"
+  data-total={total}
+  data-altura={altura}
+>
+  <div class="canvas-container" aria-label="Simulación de difusión molecular"></div>
+
+  <div class="controles">
+    <button type="button" data-action="pause">
+      Pausar
+    </button>
+
+    <button type="button" data-action="restart">
+      Reiniciar
+    </button>
+  </div>
+</section>
+
+<script>
+  import p5 from "p5";
+
+  interface Molecule {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+  }
+
+  interface Simulation {
+    instance: p5;
+    pauseButton: HTMLButtonElement | null;
+  }
+
+  const simulations = new Map<HTMLElement, Simulation>();
+
+  function createSimulation(root: HTMLElement) {
+    if (simulations.has(root)) return;
+
+    const container = root.querySelector<HTMLElement>(".canvas-container");
+    const pauseButton =
+      root.querySelector<HTMLButtonElement>('[data-action="pause"]');
+    const restartButton =
+      root.querySelector<HTMLButtonElement>('[data-action="restart"]');
+
+    if (!container) return;
+
+    const total = Math.max(1, Number(root.dataset.total) || 200);
+    const desiredHeight = Math.max(300, Number(root.dataset.altura) || 500);
+
+    let molecules: Molecule[] = [];
+    let paused = false;
+
+    const sketch = (p: p5) => {
+      function getCanvasWidth() {
+        return Math.max(300, container.clientWidth);
+      }
+
+      function getCanvasHeight() {
+        return Math.min(desiredHeight, getCanvasWidth() * 0.62);
+      }
+
+      function resetMolecules() {
+        molecules = [];
+
+        for (let i = 0; i < total; i++) {
+          molecules.push({
+            // Al principio se concentran en el lado izquierdo.
+            x: p.random(12, p.width * 0.42),
+            y: p.random(55, p.height - 80),
+            vx: p.random(-1.4, 1.4),
+            vy: p.random(-1.4, 1.4),
+          });
+        }
+      }
+
+      p.setup = () => {
+        const canvas = p.createCanvas(
+          getCanvasWidth(),
+          getCanvasHeight(),
+        );
+
+        canvas.parent(container);
+        canvas.attribute(
+          "aria-label",
+          "Moléculas difundiéndose desde alta hacia baja concentración",
+        );
+
+        p.textFont("Arial");
+        resetMolecules();
+      };
+
+      p.draw = () => {
+        p.background(245);
+
+        const middle = p.width / 2;
+
+        // Regiones de concentración.
+        p.noStroke();
+        p.fill(205, 232, 252);
+        p.rect(0, 0, middle, p.height);
+
+        p.fill(255, 236, 203);
+        p.rect(middle, 0, middle, p.height);
+
+        // Línea que permite comparar ambos lados.
+        p.stroke(90, 110);
+        p.strokeWeight(2);
+        p.drawingContext.setLineDash([8, 8]);
+        p.line(middle, 45, middle, p.height - 65);
+        p.drawingContext.setLineDash([]);
+
+        // Movimiento browniano.
+        for (const molecule of molecules) {
+          molecule.vx += p.random(-0.18, 0.18);
+          molecule.vy += p.random(-0.18, 0.18);
+
+          molecule.vx = p.constrain(molecule.vx, -2, 2);
+          molecule.vy = p.constrain(molecule.vy, -2, 2);
+
+          molecule.x += molecule.vx;
+          molecule.y += molecule.vy;
+
+          if (molecule.x <= 5 || molecule.x >= p.width - 5) {
+            molecule.vx *= -1;
+          }
+
+          if (molecule.y <= 50 || molecule.y >= p.height - 70) {
+            molecule.vy *= -1;
+          }
+
+          molecule.x = p.constrain(molecule.x, 5, p.width - 5);
+          molecule.y = p.constrain(
+            molecule.y,
+            50,
+            p.height - 70,
+          );
+
+          p.noStroke();
+          p.fill(25, 118, 210, 190);
+          p.circle(molecule.x, molecule.y, 9);
+
+          p.fill(255, 150);
+          p.circle(molecule.x - 1.5, molecule.y - 1.5, 2.5);
+        }
+
+        let left = 0;
+
+        for (const molecule of molecules) {
+          if (molecule.x < middle) left++;
+        }
+
+        const right = total - left;
+        const difference = Math.abs(left - right);
+        const equilibrium = 1 - difference / total;
+
+        // Encabezados.
+        p.noStroke();
+        p.fill(25);
+        p.textAlign(p.CENTER, p.CENTER);
+        p.textSize(Math.max(13, Math.min(18, p.width / 40)));
+
+        p.text("Alta concentración", p.width * 0.25, 25);
+        p.text("Baja concentración", p.width * 0.75, 25);
+
+        // Panel inferior.
+        p.fill(255, 245);
+        p.rect(0, p.height - 60, p.width, 60);
+
+        p.fill(25);
+        p.textSize(14);
+        p.text(`Izquierda: ${left}`, p.width * 0.2, p.height - 38);
+        p.text(`Derecha: ${right}`, p.width * 0.8, p.height - 38);
+
+        p.textSize(12);
+        p.fill(70);
+        p.text(
+          `Equilibrio de concentración: ${Math.round(equilibrium * 100)}%`,
+          p.width / 2,
+          p.height - 17,
+        );
+      };
+
+      p.windowResized = () => {
+        const oldWidth = p.width;
+        const oldHeight = p.height;
+
+        const newWidth = getCanvasWidth();
+        const newHeight = getCanvasHeight();
+
+        p.resizeCanvas(newWidth, newHeight);
+
+        // Conserva la posición relativa de las moléculas.
+        for (const molecule of molecules) {
+          molecule.x = (molecule.x / oldWidth) * newWidth;
+          molecule.y = (molecule.y / oldHeight) * newHeight;
+        }
+      };
+
+      pauseButton?.addEventListener("click", () => {
+        paused = !paused;
+
+        if (paused) {
+          p.noLoop();
+          pauseButton.textContent = "Continuar";
+        } else {
+          p.loop();
+          pauseButton.textContent = "Pausar";
+        }
+      });
+
+      restartButton?.addEventListener("click", () => {
+        resetMolecules();
+
+        if (paused) {
+          paused = false;
+          pauseButton && (pauseButton.textContent = "Pausar");
+          p.loop();
+        }
+      });
+    };
+
+    const instance = new p5(sketch);
+
+    simulations.set(root, {
+      instance,
+      pauseButton,
+    });
+  }
+
+  function initializeSimulations() {
+    document
+      .querySelectorAll<HTMLElement>(".difusion")
+      .forEach(createSimulation);
+  }
+
+  initializeSimulations();
+
+  // Compatible con la navegación del router de Astro.
+  document.addEventListener("astro:page-load", initializeSimulations);
+
+  document.addEventListener("astro:before-swap", () => {
+    for (const simulation of simulations.values()) {
+      simulation.instance.remove();
+    }
+
+    simulations.clear();
+  });
+</script>
+
+<style>
+  .difusion {
+    width: 100%;
+    max-width: 900px;
+    margin-inline: auto;
+  }
+
+  .canvas-container {
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    background: #f5f5f5;
+  }
+
+  .canvas-container :global(canvas) {
+    display: block;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .controles {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  button {
+    min-height: 44px;
+    padding: 0.65rem 1.2rem;
+    border: 0;
+    border-radius: 8px;
+    background: #1565c0;
+    color: white;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #0d47a1;
+  }
+
+  button:focus-visible {
+    outline: 3px solid #90caf9;
+    outline-offset: 3px;
+  }
+</style>

@@ -1,0 +1,78 @@
+---
+import { getCollection } from 'astro:content';
+
+import background from '../assets/background.svg';
+import "../styles/welcome.css";
+const lecciones = (await getCollection('lecciones'))
+  .filter((leccion) => !leccion.data.draft)
+  .sort((a, b) => a.data.lessonNumber - b.data.lessonNumber);
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<meta
+			name="description"
+			content="Explora todas las lecciones disponibles."
+		/>
+		<title>Lecciones</title>
+	</head>
+
+	<body>
+		<img
+			class="background"
+			src={background.src}
+			alt=""
+			aria-hidden="true"
+			fetchpriority="high"
+		/>
+
+		<main class="page">
+			<header class="hero">
+				<span class="eyebrow">Procesos de Transferencia de Masa</span>
+		
+			</header>
+
+			{
+				lecciones.length > 0 ? (
+					<section aria-labelledby="lessons-title">
+						<h2 id="lessons-title" class="sr-only">
+							Listado de lecciones
+						</h2>
+
+						<ul class="lesson-grid">
+							{lecciones.map((leccion, index) => (
+								<li>
+									<a
+										class="lesson-card"
+										href={`${import.meta.env.BASE_URL}/lecciones/${leccion.id}`}
+									>
+										<span class="lesson-number" aria-hidden="true">
+											{String(index + 1).padStart(2, '0')}
+										</span>
+
+										<div class="lesson-content">
+											<h3>{leccion.data.title}</h3>
+										</div>
+
+										
+									</a>
+								</li>
+							))}
+						</ul>
+					</section>
+				) : (
+					<section class="empty-state">
+						<h2>No hay lecciones disponibles</h2>
+
+						<p>
+							Agrega contenido a la colección <code>lecciones</code>.
+						</p>
+					</section>
+				)
+			}
+		</main>
+	</body>
+</html>

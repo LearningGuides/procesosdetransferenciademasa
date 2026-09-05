@@ -1,0 +1,1124 @@
+<div id="p5-container"></div>
+
+<script>
+  import p5 from "p5";
+
+  const container = document.querySelector("#p5-container");
+
+  if (!(container instanceof HTMLElement)) {
+    throw new Error("No se encontró el contenedor de p5");
+  }
+
+  const sketch = (p) => {
+    /*
+  Convección, difusión y reacción de primer orden
+
+  Ecuación:
+
+  ∂CA/∂t =
+  -ux ∂CA/∂x
+  + D ∂²CA/∂x²
+  - k CA
+
+  Convección: desplazamiento colectivo
+  Difusión: movimiento aleatorio
+  Reacción: desaparición de partículas
+*/
+
+const BOX = {
+  x: 40,
+  y: 135,
+  w: 1020,
+  h: 190
+};
+
+const NUM_CELLS = 100;
+const INITIAL_PARTICLES = 1600;
+
+let particles = [];
+
+let concentration = [];
+let gradient = [];
+let curvature = [];
+
+let convectionTerm = [];
+let diffusionTerm = [];
+let reactionTerm = [];
+let totalTerm = [];
+
+let velocitySlider;
+let diffusionSlider;
+let reactionSlider;
+let probeSlider;
+
+let pauseButton;
+let resetButton;
+
+let paused = false;
+let simulationTime = 0;
+
+let concentrationHistory = [];
+let timeHistory = [];
+
+let lastHistoryTime = 0;
+const HISTORY_INTERVAL = 0.1;
+const MAX_HISTORY_POINTS = 300;
+
+    p.setup = () => {
+const canvas = p.createCanvas(1100, 1040);
+        canvas.parent(container);
+
+      
+       velocitySlider = p.createSlider(-3, 3, 1, 0.1);
+  velocitySlider.position(130, 48);
+  velocitySlider.size(150);
+
+  diffusionSlider = p.createSlider(0, 30, 0.5, 0.05);
+  diffusionSlider.position(390, 48);
+  diffusionSlider.size(150);
+
+  reactionSlider = p.createSlider(0, 0.5, 0.05, 0.005);
+  reactionSlider.position(650, 48);
+  reactionSlider.size(150);
+
+  probeSlider = p.createSlider(0, NUM_CELLS - 1, 50, 1);
+  probeSlider.position(130, 88);
+  probeSlider.size(300);
+  
+
+  pauseButton = p.createButton("Pausar");
+  pauseButton.position(850, 43);
+  pauseButton.mousePressed(togglePause);
+
+  resetButton = p.createButton("Reiniciar");
+  resetButton.position(930, 43);
+  resetButton.mousePressed(resetSimulation);
+  
+  initializeArrays();
+  resetSimulation();
+}
+    p.draw = () => {
+     p.background(245);
+
+  const ux = velocitySlider.value();
+  const D = diffusionSlider.value();
+  const k = reactionSlider.value();
+
+  const dt = p.min(p.deltaTime / 1000, 0.04);
+
+  if (!paused) {
+    updateParticles(ux, D, k, dt);
+    simulationTime += dt;
+  }
+
+  calculateConcentration();
+  calculateSpatialDerivatives();
+  calculateEquationTerms(ux, D, k);
+  recordConcentrationHistory();
+
+  drawHeader(ux, D, k);
+  drawParticleDomain(ux);
+  drawGraphs();
+  drawProbePanel(ux, D, k);
+};
+
+
+function initializeArrays() {
+  concentration = new Array(NUM_CELLS).fill(0);
+  gradient = new Array(NUM_CELLS).fill(0);
+  curvature = new Array(NUM_CELLS).fill(0);
+
+  convectionTerm = new Array(NUM_CELLS).fill(0);
+  diffusionTerm = new Array(NUM_CELLS).fill(0);
+  reactionTerm = new Array(NUM_CELLS).fill(0);
+  totalTerm = new Array(NUM_CELLS).fill(0);
+}
+function resetSimulation() {
+  particles = [];
+  simulationTime = 0;
+  paused = false;
+  concentrationHistory = [];
+timeHistory = [];
+lastHistoryTime = 0;
+
+  if (pauseButton) {
+    pauseButton.html("Pausar");
+  }
+
+  /*
+    Distribución inicial gaussiana.
+
+    La concentración comienza localizada cerca
+    del lado izquierdo del dominio.
+  */
+  for (let i = 0; i < INITIAL_PARTICLES; i++) {
+    let normalizedX = p.randomGaussian(0.28, 0.055);
+    normalizedX = p.constrain(normalizedX, 0, 1);
+
+    particles.push({
+      x: BOX.x + normalizedX * BOX.w,
+      y: p.random(BOX.y + 18, BOX.y + BOX.h - 18),
+      diameter: p.random(3, 7)
+    });
+  }
+
+  initializeArrays();
+}
+
+function togglePause() {
+  paused = !paused;
+  pauseButton.html(paused ? "Continuar" : "Pausar");
+}
+
+
+function updateParticles(ux, D, k, dt) {
+  const convectionScale = 55;
+  const diffusionScale = 22;
+
+  /*
+    Para una reacción de primer orden:
+
+    dCA/dt = -kCA
+
+    La probabilidad de supervivencia durante dt es:
+
+    P = exp(-k dt)
+  */
+  const survivalProbability = p.exp(-k * dt);
+
+  const survivingParticles = [];
+
+  for (const particle of particles) {
+    // Convección
+    const convectiveDisplacement =
+      ux * convectionScale * dt;
+
+    // Difusión browniana
+    const diffusiveDisplacement =
+      p.randomGaussian() *
+      p.sqrt(2 * D * dt) *
+      diffusionScale;
+
+    particle.x +=
+      convectiveDisplacement +
+      diffusiveDisplacement;
+
+    /*
+      Condiciones periódicas:
+      una partícula que sale por un extremo
+      reaparece por el extremo contrario.
+    */
+    if (particle.x > BOX.x + BOX.w) {
+      particle.x -= BOX.w;
+    }
+
+    if (particle.x < BOX.x) {
+      particle.x += BOX.w;
+    }
+
+    /*
+      La partícula permanece únicamente
+      si todavía no ha reaccionado.
+    */
+    if (p.random() < survivalProbability) {
+      survivingParticles.push(particle);
+    }
+  }
+
+  particles = survivingParticles;
+}
+
+
+function calculateConcentration() {
+  concentration.fill(0);
+
+  const cellWidth = BOX.w / NUM_CELLS;
+
+  /*
+    Se cuentan las partículas en cada celda.
+    Este número representa CA(x).
+  */
+  for (const particle of particles) {
+    let cell = p.floor(
+      (particle.x - BOX.x) / cellWidth
+    );
+
+    cell = p.constrain(cell, 0, NUM_CELLS - 1);
+    concentration[cell]++;
+  }
+
+  concentration = smoothArray(concentration, 3);
+}
+
+function calculateSpatialDerivatives() {
+  const dx = BOX.w / NUM_CELLS;
+
+  for (let i = 0; i < NUM_CELLS; i++) {
+    const left =
+      i === 0 ? NUM_CELLS - 1 : i - 1;
+
+    const right =
+      i === NUM_CELLS - 1 ? 0 : i + 1;
+
+    /*
+      Primera derivada:
+
+      ∂CA/∂x ≈
+      [CA(i+1) - CA(i-1)] / 2Δx
+    */
+    gradient[i] =
+      (
+        concentration[right] -
+        concentration[left]
+      ) /
+      (2 * dx);
+
+    /*
+      Segunda derivada:
+
+      ∂²CA/∂x² ≈
+      [CA(i+1) - 2CA(i) + CA(i-1)] / Δx²
+    */
+    curvature[i] =
+      (
+        concentration[right] -
+        2 * concentration[i] +
+        concentration[left]
+      ) /
+      (dx * dx);
+  }
+}
+
+
+function calculateEquationTerms(ux, D, k) {
+  for (let i = 0; i < NUM_CELLS; i++) {
+    /*
+      Término convectivo que aparece
+      en el lado derecho de la ecuación.
+    */
+    convectionTerm[i] =
+      -ux * gradient[i];
+
+    // Término difusivo
+    diffusionTerm[i] =
+      D * curvature[i];
+
+    // Término reactivo
+    reactionTerm[i] =
+      -k * concentration[i];
+
+    /*
+      Cambio total:
+
+      ∂CA/∂t =
+      -ux ∂CA/∂x
+      + D ∂²CA/∂x²
+      - kCA
+    */
+    totalTerm[i] =
+      convectionTerm[i] +
+      diffusionTerm[i] +
+      reactionTerm[i];
+  }
+}
+
+function smoothArray(values, radius) {
+  const result =
+    new Array(values.length).fill(0);
+
+  for (let i = 0; i < values.length; i++) {
+    let sum = 0;
+    let count = 0;
+
+    for (
+      let offset = -radius;
+      offset <= radius;
+      offset++
+    ) {
+      let index = i + offset;
+
+      if (index < 0) {
+        index += values.length;
+      }
+
+      if (index >= values.length) {
+        index -= values.length;
+      }
+
+      sum += values[index];
+      count++;
+    }
+
+    result[i] = sum / count;
+  }
+
+  return result;
+}
+
+
+function drawHeader(ux, D, k) {
+  p.fill(20);
+  p.noStroke();
+
+  p.textSize(22);
+  p.textStyle(p.BOLD);
+  p.text(
+    "Transporte por convección, difusión y reacción",
+    40,
+    30
+  );
+
+  p.textStyle(p.NORMAL);
+  p.textSize(14);
+
+  p.text("Velocidad uₓ:", 40, 64);
+  p.text(p.nf(ux, 1, 1), 290, 64);
+
+  p.text("Difusión D:", 320, 64);
+  p.text(p.nf(D, 1, 2), 550, 64);
+
+  p.text("Reacción k:", 580, 64);
+  p.text(p.nf(k, 1, 3), 810, 64);
+
+  p.text("Punto de medición:", 40, 104);
+
+  p.fill(60);
+  p.textSize(13);
+
+  p.text(
+    "∂Cₐ/∂t = −uₓ ∂Cₐ/∂x + D ∂²Cₐ/∂x² − kCₐ",
+    500,
+    105
+  );
+}
+
+function drawParticleDomain(ux) {
+  const selectedCell = probeSlider.value();
+  const cellWidth = BOX.w / NUM_CELLS;
+
+  p.stroke(30);
+  p.strokeWeight(2);
+  p.fill(255);
+
+  p.rect(BOX.x, BOX.y, BOX.w, BOX.h);
+
+  // Celda de medición
+  p.noStroke();
+  p.fill(255, 210, 40, 70);
+
+  p.rect(
+    BOX.x + selectedCell * cellWidth,
+    BOX.y,
+    cellWidth,
+    BOX.h
+  );
+
+  // Partículas de la especie A
+  p.noStroke();
+
+  for (const particle of particles) {
+    p.fill(30, 115, 225, 175);
+
+    p.circle(
+      particle.x,
+      particle.y,
+      particle.diameter
+    );
+  }
+
+  drawVelocityArrow(ux);
+
+  p.fill(30);
+  p.noStroke();
+  p.textSize(13);
+
+  p.text(
+    "x",
+    BOX.x + BOX.w + 10,
+    BOX.y + BOX.h / 2
+  );
+
+  p.text(
+    "Partículas restantes: " +
+      particles.length +
+      " de " +
+      INITIAL_PARTICLES,
+    BOX.x,
+    BOX.y + BOX.h + 23
+  );
+
+  p.text(
+    "Tiempo: " +
+      p.nf(simulationTime, 1, 2) +
+      " s",
+    BOX.x + 350,
+    BOX.y + BOX.h + 23
+  );
+
+  p.text(
+    "Concentración global relativa: " +
+      p.nf(
+        particles.length / INITIAL_PARTICLES,
+        1,
+        3
+      ),
+    BOX.x + 510,
+    BOX.y + BOX.h + 23
+  );
+
+  if (particles.length === 0) {
+    p.fill(190, 30, 30);
+    p.textSize(20);
+    p.textStyle(p.BOLD);
+
+    p.text(
+      "La especie A se ha consumido",
+      BOX.x + BOX.w / 2 - 130,
+      BOX.y + BOX.h / 2
+    );
+
+    p.textStyle(p.NORMAL);
+  }
+}
+function drawVelocityArrow(ux) {
+  const centerX = BOX.x + BOX.w / 2;
+  const arrowY = BOX.y + 25;
+  const arrowLength = ux * 45;
+
+  p.stroke(220, 65, 45);
+  p.strokeWeight(4);
+
+  p.line(
+    centerX,
+    arrowY,
+    centerX + arrowLength,
+    arrowY
+  );
+
+  if (p.abs(arrowLength) > 2) {
+    const direction =
+      arrowLength > 0 ? 1 : -1;
+
+    const endX =
+      centerX + arrowLength;
+
+    p.line(
+      endX,
+      arrowY,
+      endX - direction * 10,
+      arrowY - 7
+    );
+
+    p.line(
+      endX,
+      arrowY,
+      endX - direction * 10,
+      arrowY + 7
+    );
+  }
+
+  p.noStroke();
+  p.fill(220, 65, 45);
+  p.textSize(13);
+
+  p.text(
+    "uₓ",
+    centerX + arrowLength + 7,
+    arrowY + 5
+  );
+}
+
+function recordConcentrationHistory() {
+  if (paused) {
+    return;
+  }
+
+  if (simulationTime - lastHistoryTime < HISTORY_INTERVAL) {
+    return;
+  }
+
+  const selectedCell = probeSlider.value();
+  const localConcentration = concentration[selectedCell];
+
+  timeHistory.push(simulationTime);
+  concentrationHistory.push(localConcentration);
+
+  lastHistoryTime = simulationTime;
+
+  if (timeHistory.length > MAX_HISTORY_POINTS) {
+    timeHistory.shift();
+    concentrationHistory.shift();
+  }
+}
+
+function drawGraphs() {
+  drawGraph(
+    {
+      x: 40,
+      y: 390,
+      w: 320,
+      h: 125
+    },
+    "Concentración Cₐ(x)",
+    concentration,
+    false
+  );
+
+  drawGraph(
+    {
+      x: 390,
+      y: 390,
+      w: 320,
+      h: 125
+    },
+    "Primera derivada ∂Cₐ/∂x",
+    gradient,
+    true
+  );
+
+  drawGraph(
+    {
+      x: 740,
+      y: 390,
+      w: 320,
+      h: 125
+    },
+    "Segunda derivada ∂²Cₐ/∂x²",
+    curvature,
+    true
+  );
+
+  drawGraph(
+    {
+      x: 40,
+      y: 570,
+      w: 320,
+      h: 125
+    },
+    "Convección −uₓ ∂Cₐ/∂x",
+    convectionTerm,
+    true
+  );
+
+  drawGraph(
+    {
+      x: 390,
+      y: 570,
+      w: 320,
+      h: 125
+    },
+    "Difusión D ∂²Cₐ/∂x²",
+    diffusionTerm,
+    true
+  );
+
+  drawGraph(
+    {
+      x: 740,
+      y: 570,
+      w: 320,
+      h: 125
+    },
+    "Reacción −kCₐ",
+    reactionTerm,
+    true
+  );
+
+  drawGraph(
+  {
+    x: 40,
+    y: 750,
+    w: 320,
+    h: 125
+  },
+  "Cambio total ∂Cₐ/∂t",
+  totalTerm,
+  true
+);
+
+drawParticleCountGraph({
+  x: 390,
+  y: 750,
+  w: 320,
+  h: 125
+});
+
+drawConcentrationTimeGraph({
+  x: 740,
+  y: 750,
+  w: 320,
+  h: 125
+});
+}
+
+function drawConcentrationTimeGraph(graph) {
+  p.fill(255);
+  p.stroke(50);
+  p.strokeWeight(1);
+  p.rect(graph.x, graph.y, graph.w, graph.h);
+
+  p.fill(20);
+  p.noStroke();
+  p.textSize(12);
+  p.textStyle(p.BOLD);
+  p.text(
+    "Concentración local Cₐ(t)",
+    graph.x,
+    graph.y - 9
+  );
+
+  p.textStyle(p.NORMAL);
+
+  if (timeHistory.length < 2) {
+    p.fill(90);
+    p.textSize(11);
+    p.text(
+      "Esperando datos...",
+      graph.x + 15,
+      graph.y + graph.h / 2
+    );
+    return;
+  }
+
+  const minimumTime = timeHistory[0];
+  const maximumTime = timeHistory[timeHistory.length - 1];
+
+  const maximumConcentration = p.max(
+    1,
+    p.max(concentrationHistory)
+  );
+
+  p.stroke(35, 115, 220);
+  p.strokeWeight(2);
+  p.noFill();
+  p.beginShape();
+
+  for (let i = 0; i < concentrationHistory.length; i++) {
+    const x = p.map(
+      timeHistory[i],
+      minimumTime,
+      maximumTime,
+      graph.x,
+      graph.x + graph.w
+    );
+
+    const y = p.map(
+      concentrationHistory[i],
+      0,
+      maximumConcentration,
+      graph.y + graph.h,
+      graph.y
+    );
+
+    p.vertex(x, y);
+  }
+
+  p.endShape();
+
+  p.fill(60);
+  p.noStroke();
+  p.textSize(10);
+
+  p.text(
+    p.nf(minimumTime, 1, 1) + " s",
+    graph.x,
+    graph.y + graph.h + 14
+  );
+
+  p.text(
+    p.nf(maximumTime, 1, 1) + " s",
+    graph.x + graph.w - 30,
+    graph.y + graph.h + 14
+  );
+
+  p.text(
+    "tiempo",
+    graph.x + graph.w / 2 - 15,
+    graph.y + graph.h + 14
+  );
+}
+
+function drawGraph(graph, title, values, centered) {
+  p.fill(255);
+  p.stroke(50);
+  p.strokeWeight(1);
+
+  p.rect(
+    graph.x,
+    graph.y,
+    graph.w,
+    graph.h
+  );
+
+  p.fill(20);
+  p.noStroke();
+  p.textSize(12);
+  p.textStyle(p.BOLD);
+
+  p.text(
+    title,
+    graph.x,
+    graph.y - 9
+  );
+
+  p.textStyle(p.NORMAL);
+
+  let minimumValue;
+  let maximumValue;
+
+  if (centered) {
+    const maximumAbsolute = p.max(
+      0.001,
+      p.max(values.map(value => p.abs(value)))
+    );
+
+    minimumValue = -maximumAbsolute;
+    maximumValue = maximumAbsolute;
+
+    const zeroY = p.map(
+      0,
+      minimumValue,
+      maximumValue,
+      graph.y + graph.h,
+      graph.y
+    );
+
+    p.stroke(185);
+    p.line(
+      graph.x,
+      zeroY,
+      graph.x + graph.w,
+      zeroY
+    );
+  } else {
+    minimumValue = 0;
+    maximumValue = p.max(1, p.max(values));
+  }
+
+  const selectedCell = probeSlider.value();
+
+  const selectedX = p.map(
+    selectedCell,
+    0,
+    NUM_CELLS - 1,
+    graph.x,
+    graph.x + graph.w
+  );
+
+  p.stroke(230, 180, 20);
+  p.strokeWeight(2);
+
+  p.line(
+    selectedX,
+    graph.y,
+    selectedX,
+    graph.y + graph.h
+  );
+
+  p.stroke(35, 115, 220);
+  p.strokeWeight(2);
+  p.noFill();
+
+  p.beginShape();
+
+  for (let i = 0; i < values.length; i++) {
+    const x = p.map(
+      i,
+      0,
+      values.length - 1,
+      graph.x,
+      graph.x + graph.w
+    );
+
+    const y = p.map(
+      values[i],
+      minimumValue,
+      maximumValue,
+      graph.y + graph.h,
+      graph.y
+    );
+
+    p.vertex(x, y);
+  }
+
+  p.endShape();
+
+  p.fill(60);
+  p.noStroke();
+  p.textSize(10);
+
+  p.text(
+    "x",
+    graph.x + graph.w - 7,
+    graph.y + graph.h + 14
+  );
+}
+
+function drawConcentrationTimeGraph(graph) {
+  p.fill(255);
+  p.stroke(50);
+  p.strokeWeight(1);
+  p.rect(graph.x, graph.y, graph.w, graph.h);
+
+  p.fill(20);
+  p.noStroke();
+  p.textSize(12);
+  p.textStyle(p.BOLD);
+  p.text(
+    "Concentración local Cₐ(t)",
+    graph.x,
+    graph.y - 9
+  );
+
+  p.textStyle(p.NORMAL);
+
+  if (timeHistory.length < 2) {
+    p.fill(90);
+    p.textSize(11);
+    p.text(
+      "Esperando datos...",
+      graph.x + 15,
+      graph.y + graph.h / 2
+    );
+    return;
+  }
+
+  const minimumTime = timeHistory[0];
+  const maximumTime = timeHistory[timeHistory.length - 1];
+
+  const maximumConcentration = p.max(
+    1,
+    p.max(concentrationHistory)
+  );
+
+  p.stroke(35, 115, 220);
+  p.strokeWeight(2);
+  p.noFill();
+  p.beginShape();
+
+  for (let i = 0; i < concentrationHistory.length; i++) {
+    const x = p.map(
+      timeHistory[i],
+      minimumTime,
+      maximumTime,
+      graph.x,
+      graph.x + graph.w
+    );
+
+    const y = p.map(
+      concentrationHistory[i],
+      0,
+      maximumConcentration,
+      graph.y + graph.h,
+      graph.y
+    );
+
+    p.vertex(x, y);
+  }
+
+  p.endShape();
+
+  p.fill(60);
+  p.noStroke();
+  p.textSize(10);
+
+  p.text(
+    p.nf(minimumTime, 1, 1) + " s",
+    graph.x,
+    graph.y + graph.h + 14
+  );
+
+  p.text(
+    p.nf(maximumTime, 1, 1) + " s",
+    graph.x + graph.w - 30,
+    graph.y + graph.h + 14
+  );
+
+  p.text(
+    "tiempo",
+    graph.x + graph.w / 2 - 15,
+    graph.y + graph.h + 14
+  );
+}
+
+function drawParticleCountGraph(graph) {
+  p.fill(255);
+  p.stroke(50);
+  p.rect(graph.x, graph.y, graph.w, graph.h);
+
+  p.fill(20);
+  p.noStroke();
+  p.textSize(12);
+  p.textStyle(p.BOLD);
+
+  p.text(
+    "Consumo global por reacción",
+    graph.x,
+    graph.y - 9
+  );
+
+  p.textStyle(p.NORMAL);
+
+  const relativeConcentration =
+    particles.length / INITIAL_PARTICLES;
+
+  const barWidth =
+    relativeConcentration * (graph.w - 30);
+
+  p.noStroke();
+  p.fill(220);
+
+  p.rect(
+    graph.x + 15,
+    graph.y + 45,
+    graph.w - 30,
+    30
+  );
+
+  p.fill(35, 115, 220);
+
+  p.rect(
+    graph.x + 15,
+    graph.y + 45,
+    barWidth,
+    30
+  );
+
+  p.fill(20);
+  p.textSize(13);
+
+  p.text(
+    "Cₐ/Cₐ₀ = " +
+      p.nf(relativeConcentration, 1, 3),
+    graph.x + 15,
+    graph.y + 28
+  );
+
+  p.fill(70);
+  p.textSize(11);
+
+  p.text(
+    "La barra disminuye cuando A reacciona.",
+    graph.x + 15,
+    graph.y + 100
+  );
+}
+
+
+function drawProbePanel(ux, D, k) {
+  const cell = probeSlider.value();
+
+  const localC = concentration[cell];
+  const localGradient = gradient[cell];
+  const localCurvature = curvature[cell];
+
+  const localConvection =
+    convectionTerm[cell];
+
+  const localDiffusion =
+    diffusionTerm[cell];
+
+  const localReaction =
+    reactionTerm[cell];
+
+  const localTotal =
+    totalTerm[cell];
+
+  p.fill(255);
+  p.stroke(70);
+
+  p.rect(
+  40,
+  920,
+  1020,
+  85,
+  5
+);
+
+  p.fill(20);
+  p.noStroke();
+  p.textSize(14);
+  p.textStyle(p.BOLD);
+
+  p.text(
+  "Valores en la celda seleccionada",
+  55,
+  945
+);
+
+  p.textStyle(p.NORMAL);
+  p.textSize(12);
+
+  p.text(
+    "Cₐ = " + p.nf(localC, 1, 2),
+    55,
+    976
+  );
+
+  p.text(
+    "−uₓ∂Cₐ/∂x = " +
+      p.nf(localConvection, 1, 4),
+    150,
+    976
+  );
+
+  p.text(
+    "D∂²Cₐ/∂x² = " +
+      p.nf(localDiffusion, 1, 4),
+    340,
+    976
+  );
+
+  p.text(
+    "−kCₐ = " +
+      p.nf(localReaction, 1, 4),
+    530,
+    976
+  );
+
+  p.text(
+    "∂Cₐ/∂t = " +
+      p.nf(localTotal, 1, 4),
+    660,
+    976
+  );
+
+  p.text(
+    "uₓ = " +
+      p.nf(ux, 1, 1) +
+      "   D = " +
+      p.nf(D, 1, 2) +
+      "   k = " +
+      p.nf(k, 1, 3),
+    830,
+    976
+  );
+}
+  };
+
+  const instance = new p5(sketch, container);
+
+  // Evita que el canvas permanezca o se duplique
+  // cuando Astro usa transiciones de vista.
+  document.addEventListener(
+    "astro:before-swap",
+    () => {
+      instance.remove();
+    },
+    { once: true },
+  );
+</script>
+
+<style>
+ #p5-container {
+  position: relative;
+  width: 1100px;
+  height: 1040px;
+  min-height: 400px;
+}
+
+  #p5-container :global(canvas) {
+    display: block;
+    max-width: 100%;
+  }
+</style>

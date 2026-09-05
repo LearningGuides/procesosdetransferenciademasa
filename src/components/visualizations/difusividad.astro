@@ -1,0 +1,804 @@
+---
+interface Props {
+  sketch: string;
+  containerId?: string;
+}
+
+const {
+  sketch,
+  containerId = "p5-container",
+} = Astro.props;
+---
+
+<div
+  id={containerId}
+  class="p5-container"
+  data-sketch={sketch}
+></div>
+
+<script is:inline>
+  async function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const existingScript = document.querySelector(
+        `script[src="${src}"]`
+      );
+
+      if (existingScript) {
+        if (existingScript.dataset.loaded === "true") {
+          resolve();
+          return;
+        }
+
+        existingScript.addEventListener("load", resolve, { once: true });
+        existingScript.addEventListener("error", reject, { once: true });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = false;
+
+      script.addEventListener("load", () => {
+        script.dataset.loaded = "true";
+        resolve();
+      });
+
+      script.addEventListener("error", () => {
+        reject(new Error(`No se pudo cargar: ${src}`));
+      });
+
+      document.body.appendChild(script);
+    });
+  }
+
+  async function initializeP5Sketches() {
+    try {
+      await loadScript(
+        "https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.min.js"
+      );
+
+      const containers = document.querySelectorAll(
+        ".p5-container[data-sketch]"
+      );
+
+      for (const container of containers) {
+        if (container.dataset.initialized === "true") continue;
+
+        const sketch = container.dataset.sketch;
+
+        if (!sketch) continue;
+
+        container.dataset.initialized = "true";
+        window.p5ContainerId = container.id;
+
+        await loadScript(sketch);
+      }
+    } catch (error) {
+      console.error("Error cargando p5.js:", error);
+    }
+  }
+
+  initializeP5Sketches();
+
+  document.addEventListener(
+    "astro:page-load",
+    initializeP5Sketches
+  );
+
+  let particlesA = [];
+let particlesB = [];
+let particlesC = [];
+
+let sliders = {};
+
+const PANEL_X = 760;
+const CONTAINER_LEFT = 40;
+const CONTAINER_TOP = 90;
+const CONTAINER_BOTTOM = 610;
+
+
+  function setup() {
+  const container = document.getElementById(
+    window.p5ContainerId || "p5-container"
+  );
+
+  const canvas = createCanvas(
+    container?.clientWidth || 1120, 700
+  );
+
+  canvas.parent(container);
+sliders.T = createSlider(100, 1200, 300, 10);
+  sliders.P = createSlider(0.5, 10, 1, 0.1);
+
+  sliders.MA = createSlider(2, 150, 28, 1);
+  sliders.MB = createSlider(2, 150, 32, 1);
+  sliders.MC = createSlider(2, 150, 44, 1);
+
+  sliders.sigmaAB = createSlider(10, 60, 25, 1);
+  sliders.sigmaAC = createSlider(10, 60, 28, 1);
+  sliders.sigmaBC = createSlider(10, 60, 30, 1);
+
+  sliders.epsilonAB = createSlider(10, 500, 100, 5);
+  sliders.epsilonAC = createSlider(10, 500, 150, 5);
+  sliders.epsilonBC = createSlider(10, 500, 200, 5);
+
+  const sliderOrder = [
+    "T",
+    "P",
+    "MA",
+    "MB",
+    "MC",
+    "sigmaAB",
+    "sigmaAC",
+    "sigmaBC",
+    "epsilonAB",
+    "epsilonAC",
+    "epsilonBC"
+  ];
+
+  let y = 55;
+
+  for (const key of sliderOrder) {
+    sliders[key].position(PANEL_X + 20, y);
+    sliders[key].style("width", "285px");
+    y += 55;
+  }
+
+  for (let i = 0; i < 18; i++) {
+    particlesA.push(new Molecule("A"));
+    particlesB.push(new Molecule("B"));
+    particlesC.push(new Molecule("C"));
+  }
+}
+
+function draw() {
+  background(245);
+
+  const T = sliders.T.value();
+  const P = sliders.P.value();
+
+  const MA = sliders.MA.value();
+  const MB = sliders.MB.value();
+  const MC = sliders.MC.value();
+
+  const sigmaAB = sliders.sigmaAB.value();
+  const sigmaAC = sliders.sigmaAC.value();
+  const sigmaBC = sliders.sigmaBC.value();
+
+  const epsilonAB = sliders.epsilonAB.value();
+  const epsilonAC = sliders.epsilonAC.value();
+  const epsilonBC = sliders.epsilonBC.value();
+
+  drawControlPanel({
+    T,
+    P,
+    MA,
+    MB,
+    MC,
+    sigmaAB,
+    sigmaAC,
+    sigmaBC,
+    epsilonAB,
+    epsilonAC,
+    epsilonBC
+  });
+
+  const containerWidth = map(P, 0.5, 10, 680, 330);
+  const containerRight = CONTAINER_LEFT + containerWidth;
+
+  drawContainer(
+    CONTAINER_LEFT,
+    containerRight,
+    CONTAINER_TOP,
+    CONTAINER_BOTTOM,
+    P
+  );
+
+  const temperatureSpeed = map(T, 100, 1200, 0.45, 4.5);
+
+  updateGroup(
+    particlesA,
+    MA,
+    getSpeciesDiameter("A", sigmaAB, sigmaAC, sigmaBC),
+    temperatureSpeed,
+    containerRight
+  );
+
+  updateGroup(
+    particlesB,
+    MB,
+    getSpeciesDiameter("B", sigmaAB, sigmaAC, sigmaBC),
+    temperatureSpeed,
+    containerRight
+  );
+
+  updateGroup(
+    particlesC,
+    MC,
+    getSpeciesDiameter("C", sigmaAB, sigmaAC, sigmaBC),
+    temperatureSpeed,
+    containerRight
+  );
+
+  resolveCollisions(
+    particlesA,
+    particlesB,
+    sigmaAB,
+    epsilonAB
+  );
+
+  resolveCollisions(
+    particlesA,
+    particlesC,
+    sigmaAC,
+    epsilonAC
+  );
+
+  resolveCollisions(
+    particlesB,
+    particlesC,
+    sigmaBC,
+    epsilonBC
+  );
+
+  drawAttraction(
+    particlesA,
+    particlesB,
+    epsilonAB,
+    sigmaAB,
+    "AB"
+  );
+
+  drawAttraction(
+    particlesA,
+    particlesC,
+    epsilonAC,
+    sigmaAC,
+    "AC"
+  );
+
+  drawAttraction(
+    particlesB,
+    particlesC,
+    epsilonBC,
+    sigmaBC,
+    "BC"
+  );
+
+  drawLegend();
+  drawDiffusionValues({
+    T,
+    P,
+    MA,
+    MB,
+    MC,
+    sigmaAB,
+    sigmaAC,
+    sigmaBC,
+    epsilonAB,
+    epsilonAC,
+    epsilonBC
+  });
+}
+
+function updateGroup(
+  group,
+  mass,
+  diameter,
+  temperatureSpeed,
+  containerRight
+) {
+  for (const molecule of group) {
+    molecule.update(
+      CONTAINER_LEFT,
+      containerRight,
+      CONTAINER_TOP,
+      CONTAINER_BOTTOM,
+      temperatureSpeed,
+      mass,
+      diameter
+    );
+
+    molecule.display(mass, diameter);
+  }
+}
+
+function drawControlPanel(values) {
+  noStroke();
+  fill(225);
+  rect(PANEL_X, 0, width - PANEL_X, height);
+
+  fill(20);
+  textSize(22);
+  textStyle(BOLD);
+  text("Mezcla ternaria", PANEL_X + 20, 30);
+
+  textStyle(NORMAL);
+
+  const labels = [
+    ["T = Temperatura", values.T + " K"],
+    ["P = Presión", values.P.toFixed(1)],
+    ["Mₐ = Masa molecular A", values.MA],
+    ["Mᵦ = Masa molecular B", values.MB],
+    ["M꜀ = Masa molecular C", values.MC],
+    ["σₐᵦ = Diámetro AB", values.sigmaAB],
+    ["σₐ꜀ = Diámetro AC", values.sigmaAC],
+    ["σᵦ꜀ = Diámetro BC", values.sigmaBC],
+    ["εₐᵦ = Energía AB", values.epsilonAB],
+    ["εₐ꜀ = Energía AC", values.epsilonAC],
+    ["εᵦ꜀ = Energía BC", values.epsilonBC]
+  ];
+
+  let y = 54;
+
+  for (const [label, value] of labels) {
+    fill(30);
+    textSize(13);
+    text(label, PANEL_X + 20, y - 8);
+
+    fill(80);
+    textAlign(RIGHT);
+    text(value, width - 20, y - 8);
+    textAlign(LEFT);
+
+    y += 55;
+  }
+
+  fill(45);
+  textSize(12);
+  text(
+    "T aumenta la velocidad molecular.\n" +
+    "P reduce el volumen disponible.\n" +
+    "M controla la inercia.\n" +
+    "σ controla la distancia de colisión.\n" +
+    "ε controla la intensidad de atracción.",
+    PANEL_X + 20,
+    640
+  );
+}
+
+function drawContainer(left, right, top, bottom, pressure) {
+  stroke(25);
+  strokeWeight(3);
+  fill(255);
+  rect(left, top, right - left, bottom - top);
+
+  noStroke();
+  fill(30);
+  textSize(18);
+  textStyle(BOLD);
+  text("Gas A + Gas B + Gas C", left, top - 25);
+
+  textStyle(NORMAL);
+  textSize(13);
+  fill(65);
+  text(
+    "Mayor presión → menor volumen y mayor frecuencia de colisiones",
+    left,
+    bottom + 25
+  );
+
+  stroke(100);
+  strokeWeight(2);
+
+  for (let y = top + 15; y < bottom; y += 22) {
+    line(right + 5, y, right + 18, y);
+  }
+
+  noStroke();
+  fill(30);
+  textSize(16);
+  text("P", right + 28, (top + bottom) / 2);
+
+  textSize(12);
+  text(
+    pressure.toFixed(1),
+    right + 25,
+    (top + bottom) / 2 + 18
+  );
+}
+
+function drawLegend() {
+  const x = 45;
+  const y = 650;
+
+  drawLegendItem(x, y, "A", "Componente A");
+  drawLegendItem(x + 170, y, "B", "Componente B");
+  drawLegendItem(x + 340, y, "C", "Componente C");
+}
+
+function drawLegendItem(x, y, type, label) {
+  noStroke();
+
+  setSpeciesColor(type, 230);
+  circle(x, y, 24);
+
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(12);
+  text(type, x, y);
+
+  fill(30);
+  textAlign(LEFT, CENTER);
+  text(label, x + 18, y);
+
+  textAlign(LEFT, BASELINE);
+}
+
+function drawAttraction(
+  group1,
+  group2,
+  epsilon,
+  sigma,
+  pairName
+) {
+  const attractionDistance = map(
+    epsilon,
+    10,
+    500,
+    sigma + 15,
+    sigma + 130
+  );
+
+  let lineCount = 0;
+  const maxLines = 12;
+
+  for (const molecule1 of group1) {
+    for (const molecule2 of group2) {
+      if (lineCount >= maxLines) {
+        return;
+      }
+
+      const distance = dist(
+        molecule1.pos.x,
+        molecule1.pos.y,
+        molecule2.pos.x,
+        molecule2.pos.y
+      );
+
+      if (
+        distance > sigma &&
+        distance < attractionDistance
+      ) {
+        const alpha = map(
+          distance,
+          sigma,
+          attractionDistance,
+          120,
+          0
+        );
+
+        strokeWeight(
+          map(epsilon, 10, 500, 0.5, 2.5)
+        );
+
+        if (pairName === "AB") {
+          stroke(120, 70, 180, alpha);
+        } else if (pairName === "AC") {
+          stroke(50, 145, 110, alpha);
+        } else {
+          stroke(210, 130, 40, alpha);
+        }
+
+        line(
+          molecule1.pos.x,
+          molecule1.pos.y,
+          molecule2.pos.x,
+          molecule2.pos.y
+        );
+
+        lineCount++;
+      }
+    }
+  }
+}
+
+function resolveCollisions(
+  group1,
+  group2,
+  sigma,
+  epsilon
+) {
+  for (const molecule1 of group1) {
+    for (const molecule2 of group2) {
+      const difference = p5.Vector.sub(
+        molecule2.pos,
+        molecule1.pos
+      );
+
+      const distance = difference.mag();
+      const minimumDistance = sigma;
+
+      if (
+        distance > 0 &&
+        distance < minimumDistance
+      ) {
+        const normal = difference.copy().normalize();
+        const overlap = minimumDistance - distance;
+
+        molecule1.pos.add(
+          p5.Vector.mult(normal, -overlap * 0.5)
+        );
+
+        molecule2.pos.add(
+          p5.Vector.mult(normal, overlap * 0.5)
+        );
+
+        const velocity1 = molecule1.direction.copy();
+        const velocity2 = molecule2.direction.copy();
+
+        molecule1.direction = velocity2;
+        molecule2.direction = velocity1;
+
+        const attractionFactor = map(
+          epsilon,
+          10,
+          500,
+          0.98,
+          0.85
+        );
+
+        molecule1.direction.mult(attractionFactor);
+        molecule2.direction.mult(attractionFactor);
+
+        molecule1.direction.normalize();
+        molecule2.direction.normalize();
+      }
+    }
+  }
+}
+
+function drawDiffusionValues(values) {
+  const DAB = calculateRelativeDiffusion(
+    values.T,
+    values.P,
+    values.MA,
+    values.MB,
+    values.sigmaAB,
+    values.epsilonAB
+  );
+
+  const DAC = calculateRelativeDiffusion(
+    values.T,
+    values.P,
+    values.MA,
+    values.MC,
+    values.sigmaAC,
+    values.epsilonAC
+  );
+
+  const DBC = calculateRelativeDiffusion(
+    values.T,
+    values.P,
+    values.MB,
+    values.MC,
+    values.sigmaBC,
+    values.epsilonBC
+  );
+
+  const boxX = 485;
+  const boxY = 18;
+  const boxWidth = 245;
+  const boxHeight = 60;
+
+  noStroke();
+  fill(235);
+  rect(boxX, boxY, boxWidth, boxHeight, 8);
+
+  fill(25);
+  textSize(13);
+  textStyle(BOLD);
+  text("Difusión relativa estimada", boxX + 12, boxY + 18);
+
+  textStyle(NORMAL);
+  textSize(12);
+
+  text(
+    "DAB: " + DAB.toFixed(3),
+    boxX + 12,
+    boxY + 40
+  );
+
+  text(
+    "DAC: " + DAC.toFixed(3),
+    boxX + 90,
+    boxY + 40
+  );
+
+  text(
+    "DBC: " + DBC.toFixed(3),
+    boxX + 168,
+    boxY + 40
+  );
+}
+
+function calculateRelativeDiffusion(
+  temperature,
+  pressure,
+  mass1,
+  mass2,
+  sigma,
+  epsilon
+) {
+  const massTerm = sqrt(
+    1 / mass1 + 1 / mass2
+  );
+
+  const reducedTemperature =
+    temperature / max(epsilon, 1);
+
+  const collisionFunction =
+    1 +
+    0.2 / max(reducedTemperature, 0.1);
+
+  const diffusion =
+    pow(temperature, 1.5) *
+    massTerm /
+    (
+      pressure *
+      pow(sigma, 2) *
+      collisionFunction
+    );
+
+  return diffusion;
+}
+
+function getSpeciesDiameter(
+  type,
+  sigmaAB,
+  sigmaAC,
+  sigmaBC
+) {
+  if (type === "A") {
+    return (sigmaAB + sigmaAC) / 2;
+  }
+
+  if (type === "B") {
+    return (sigmaAB + sigmaBC) / 2;
+  }
+
+  return (sigmaAC + sigmaBC) / 2;
+}
+
+function setSpeciesColor(type, alpha = 210) {
+  if (type === "A") {
+    fill(70, 140, 230, alpha);
+  } else if (type === "B") {
+    fill(235, 110, 90, alpha);
+  } else {
+    fill(80, 185, 120, alpha);
+  }
+}
+
+class Molecule {
+  constructor(type) {
+    this.type = type;
+
+    this.pos = createVector(
+      random(90, 650),
+      random(130, 560)
+    );
+
+    this.direction = p5.Vector.random2D();
+    this.baseSpeed = random(0.6, 1.4);
+  }
+
+  update(
+    left,
+    right,
+    top,
+    bottom,
+    temperatureSpeed,
+    mass,
+    diameter
+  ) {
+    const radius = this.getRadius(
+      mass,
+      diameter
+    );
+
+    const massEffect = 1 / sqrt(mass);
+    const velocity =
+      temperatureSpeed *
+      massEffect *
+      8;
+
+    const movement = this.direction.copy();
+    movement.mult(
+      this.baseSpeed * velocity
+    );
+
+    this.pos.add(movement);
+
+    if (this.pos.x - radius < left) {
+      this.pos.x = left + radius;
+      this.direction.x *= -1;
+    }
+
+    if (this.pos.x + radius > right) {
+      this.pos.x = right - radius;
+      this.direction.x *= -1;
+    }
+
+    if (this.pos.y - radius < top) {
+      this.pos.y = top + radius;
+      this.direction.y *= -1;
+    }
+
+    if (this.pos.y + radius > bottom) {
+      this.pos.y = bottom - radius;
+      this.direction.y *= -1;
+    }
+  }
+
+  display(mass, diameter) {
+    const radius = this.getRadius(
+      mass,
+      diameter
+    );
+
+    noStroke();
+    setSpeciesColor(this.type, 220);
+
+    circle(
+      this.pos.x,
+      this.pos.y,
+      radius * 2
+    );
+
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(max(9, radius * 0.7));
+
+    text(
+      this.type,
+      this.pos.x,
+      this.pos.y
+    );
+
+    textAlign(LEFT, BASELINE);
+  }
+
+  getRadius(mass, diameter) {
+    const diameterEffect = map(
+      diameter,
+      10,
+      60,
+      6,
+      16
+    );
+
+    const massEffect = map(
+      mass,
+      2,
+      150,
+      0,
+      4
+    );
+
+    return diameterEffect + massEffect;
+  }
+}
+
+function windowResized() {
+  const container = document.getElementById(
+    window.p5ContainerId || "p5-container"
+  );
+
+  if (container) {
+    resizeCanvas(container.clientWidth, 400);
+  }
+}
+</script>
+
+<style>
+  .p5-container {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .p5-container :global(canvas) {
+    display: block;
+    max-width: 100%;
+  }
+</style>

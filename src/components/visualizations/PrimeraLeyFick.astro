@@ -1,0 +1,420 @@
+---
+import p5 from "p5";
+---
+
+<section class="fick-app" aria-labelledby="fick-title">
+  
+
+  <div class="fick-layout">
+    <aside class="controls" aria-label="Controles de la simulación">
+      <label>
+        <span>
+          Coeficiente de difusión, D<sub>AB</sub>
+          <output id="dab-value">1.20</output>
+        </span>
+        <input id="dab" type="range" min="0.1" max="3" step="0.05" value="1.2" />
+        <small>× 10<sup>−9</sup> m²/s</small>
+      </label>
+
+      <label>
+        <span>
+          Diferencia de concentración, ΔC
+          <output id="delta-value">6.0</output>
+        </span>
+        <input id="delta" type="range" min="-10" max="10" step="0.5" value="6" />
+        <small>mol/m³</small>
+      </label>
+
+      <label>
+        <span>
+          Dirección espacial, z
+          <output id="thickness-value">4.0</output>
+        </span>
+        <input id="thickness" type="range" min="1" max="10" step="0.5" value="4" />
+        <small>mm</small>
+      </label>
+
+      <button id="reset-button" type="button">Restablecer</button>
+    </aside>
+
+    <div class="visual-panel">
+      <div id="fick-sketch" role="img" aria-label="Perfil de concentración y representación del flujo difusivo"></div>
+
+      <div class="equation" aria-live="polite">
+        <span>J<sub>A</sub> = −D<sub>AB</sub> · ΔC / L</span>
+        <strong id="flux-value">−1.80 × 10⁻⁶ mol·m⁻²·s⁻¹</strong>
+      </div>
+
+      <p id="interpretation" class="interpretation">
+        El flujo se dirige hacia la región de menor concentración.
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  import p5 from "p5";
+
+  const root = document.querySelector(".fick-app");
+
+  if (root && !root.dataset.initialized) {
+    root.dataset.initialized = "true";
+
+    const dabInput = root.querySelector("#dab");
+    const deltaInput = root.querySelector("#delta");
+    const thicknessInput = root.querySelector("#thickness");
+    const dabValue = root.querySelector("#dab-value");
+    const deltaValue = root.querySelector("#delta-value");
+    const thicknessValue = root.querySelector("#thickness-value");
+    const fluxValue = root.querySelector("#flux-value");
+    const interpretation = root.querySelector("#interpretation");
+    const resetButton = root.querySelector("#reset-button");
+    const sketchContainer = root.querySelector("#fick-sketch");
+
+    const state = {
+      dab: 1.2,
+      deltaC: 6,
+      thickness: 4,
+      flux: 0,
+    };
+
+    const calculateFlux = () => {
+      const dabSI = state.dab * 1e-9;
+      const thicknessSI = state.thickness * 1e-3;
+      state.flux = -(dabSI * state.deltaC) / thicknessSI;
+      return state.flux;
+    };
+
+    const scientificText = (value) => {
+      if (Math.abs(value) < 1e-14) return "0 mol·m⁻²·s⁻¹";
+      const exponent = Math.floor(Math.log10(Math.abs(value)));
+      const coefficient = value / 10 ** exponent;
+      const superscripts = {
+        "-": "⁻", "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
+        "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹"
+      };
+      const exponentText = String(exponent)
+        .split("")
+        .map((character) => superscripts[character] ?? character)
+        .join("");
+      return `${coefficient.toFixed(2)} × 10${exponentText} mol·m⁻²·s⁻¹`;
+    };
+
+    const updateInterface = () => {
+      state.dab = Number(dabInput.value);
+      state.deltaC = Number(deltaInput.value);
+      state.thickness = Number(thicknessInput.value);
+      calculateFlux();
+
+      dabValue.textContent = state.dab.toFixed(2);
+      deltaValue.textContent = state.deltaC.toFixed(1);
+      thicknessValue.textContent = state.thickness.toFixed(1);
+      fluxValue.textContent = scientificText(state.flux);
+
+      if (Math.abs(state.flux) < 1e-14) {
+        interpretation.textContent = "No hay flujo neto porque el gradiente es cero.";
+      } else if (state.flux < 0) {
+        interpretation.textContent = "El flujo ocurre de izquierda a derecha, hacia la menor concentración.";
+      } else {
+        interpretation.textContent = "El flujo ocurre de derecha a izquierda, hacia la menor concentración.";
+      }
+    };
+
+    [dabInput, deltaInput, thicknessInput].forEach((input) => {
+      input.addEventListener("input", updateInterface);
+    });
+
+    resetButton.addEventListener("click", () => {
+      dabInput.value = "1.2";
+      deltaInput.value = "6";
+      thicknessInput.value = "4";
+      updateInterface();
+    });
+
+    const sketch = (p) => {
+      let particles = [];
+      const particleCount = 52;
+
+      const buildParticles = () => {
+        particles = Array.from({ length: particleCount }, (_, index) => ({
+          x: p.random(0.12, 0.88),
+          y: p.random(0.26, 0.68),
+          offset: p.random(1000),
+          size: index % 5 === 0 ? 8 : 6,
+        }));
+      };
+
+      p.setup = () => {
+        const canvas = p.createCanvas(760, 430);
+        canvas.parent(sketchContainer);
+        p.pixelDensity(Math.min(window.devicePixelRatio || 1, 2));
+        buildParticles();
+      };
+
+      p.windowResized = () => {
+        const width = Math.max(300, sketchContainer.clientWidth);
+        p.resizeCanvas(width, Math.max(330, Math.min(430, width * 0.57)));
+      };
+
+      p.draw = () => {
+        p.background(250, 252, 255);
+
+        const left = p.width * 0.12;
+        const right = p.width * 0.88;
+        const top = p.height * 0.2;
+        const bottom = p.height * 0.72;
+        const span = right - left;
+
+        const gradient = state.deltaC / (state.thickness * 1e-3);
+        const normalizedDelta = p.constrain(Math.abs(state.deltaC) / 10, 0, 1);
+        const normalizedD = p.constrain(state.dab / 3, 0, 1);
+        const normalizedThickness = p.constrain((state.thickness - 1) / 9, 0, 1);
+
+        const cLeft = 5 + state.deltaC / 2;
+        const cRight = 5 - state.deltaC / 2;
+        const maxC = 10;
+        const yLeft = bottom - p.constrain(cLeft / maxC, 0, 1) * (bottom - top);
+        const yRight = bottom - p.constrain(cRight / maxC, 0, 1) * (bottom - top);
+
+        p.noStroke();
+        p.fill(239, 246, 255);
+        p.rect(left, top, span, bottom - top, 14);
+
+        p.stroke(184, 198, 218);
+        p.strokeWeight(1);
+        for (let i = 0; i <= 4; i++) {
+          const y = p.lerp(top, bottom, i / 4);
+          p.line(left, y, right, y);
+        }
+
+        p.stroke(69, 112, 162);
+        p.strokeWeight(4);
+        p.line(left, yLeft, right, yRight);
+
+        p.noStroke();
+        p.fill(47, 72, 103);
+        p.textSize(13);
+        p.textAlign(p.LEFT, p.BOTTOM);
+        p.text("Concentración", left, top - 14);
+        p.textAlign(p.CENTER, p.TOP);
+        p.text("Distancia a través del medio", p.width / 2, bottom + 22);
+
+        p.fill(89, 110, 136);
+        p.textSize(12);
+        p.textAlign(p.CENTER, p.BOTTOM);
+        p.text(`Pendiente = ${(gradient / 1000).toFixed(2)} mol·m⁻⁴`, p.width / 2, top - 14);
+
+        const direction = state.flux === 0 ? 0 : state.flux < 0 ? 1 : -1;
+        const speed = (0.25 + normalizedD * 1.5) * (0.25 + normalizedDelta) * (1.35 - normalizedThickness * 0.75);
+
+        particles.forEach((particle) => {
+          particle.x += direction * speed * 0.00055;
+          particle.y += p.sin(p.frameCount * 0.02 + particle.offset) * 0.00018;
+
+          if (particle.x > 0.9) particle.x = 0.1;
+          if (particle.x < 0.1) particle.x = 0.9;
+
+          const x = p.lerp(left, right, particle.x);
+          const y = p.lerp(top + 24, bottom - 24, particle.y);
+
+          p.noStroke();
+          p.fill(107, 159, 207, 175);
+          p.circle(x, y, particle.size);
+        });
+
+        const arrowY = p.height * 0.84;
+        p.stroke(58, 135, 116);
+        p.strokeWeight(5);
+        if (direction !== 0) {
+          const startX = direction > 0 ? left + span * 0.3 : right - span * 0.3;
+          const endX = direction > 0 ? right - span * 0.3 : left + span * 0.3;
+          p.line(startX, arrowY, endX, arrowY);
+          p.noStroke();
+          p.fill(58, 135, 116);
+          const sign = direction > 0 ? 1 : -1;
+          p.triangle(endX, arrowY, endX - sign * 13, arrowY - 8, endX - sign * 13, arrowY + 8);
+        } else {
+          p.noStroke();
+          p.fill(100, 116, 139);
+          p.textAlign(p.CENTER, p.CENTER);
+          p.textSize(13);
+          p.text("Sin flujo neto", p.width / 2, arrowY);
+        }
+
+        p.noStroke();
+        p.fill(47, 72, 103);
+        p.textAlign(p.CENTER, p.TOP);
+        p.textSize(13);
+        p.text("Dirección de Jₐ", p.width / 2, arrowY + 18);
+      };
+    };
+
+    new p5(sketch);
+    updateInterface();
+  }
+</script>
+
+<style>
+  .fick-app {
+    --ink: #26384c;
+    --muted: #64748b;
+    --line: #dce6f2;
+    --panel: #f8fbff;
+    --accent: #477eaf;
+    --accent-soft: #e7f1fb;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 1.25rem;
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .fick-header {
+    max-width: 760px;
+    margin-bottom: 1.5rem;
+  }
+
+  .eyebrow {
+    margin: 0 0 0.35rem;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: clamp(1.7rem, 4vw, 2.6rem);
+    line-height: 1.1;
+  }
+
+  .fick-header > p:last-child {
+    margin: 0.75rem 0 0;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .fick-layout {
+    display: grid;
+    grid-template-columns: minmax(230px, 290px) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .controls,
+  .visual-panel {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: white;
+  }
+
+  .controls {
+    display: grid;
+    gap: 1.35rem;
+    padding: 1.15rem;
+  }
+
+  .controls label {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .controls label > span {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.92rem;
+    font-weight: 650;
+  }
+
+  output {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+
+  small {
+    color: var(--muted);
+  }
+
+  button {
+    min-height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--ink);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #dcecf9;
+  }
+
+  button:focus-visible,
+  input:focus-visible {
+    outline: 3px solid rgba(71, 126, 175, 0.25);
+    outline-offset: 3px;
+  }
+
+  .visual-panel {
+    overflow: hidden;
+  }
+
+  #fick-sketch {
+    min-height: 330px;
+    background: var(--panel);
+  }
+
+  #fick-sketch :global(canvas) {
+    display: block;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .equation {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.2rem;
+    border-top: 1px solid var(--line);
+    background: white;
+  }
+
+  .equation span {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  .equation strong {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .interpretation {
+    margin: 0;
+    padding: 0 1.2rem 1.15rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 760px) {
+    .fick-app {
+      padding: 0.75rem;
+    }
+
+    .fick-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .controls {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

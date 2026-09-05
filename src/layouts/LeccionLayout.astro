@@ -1,0 +1,45 @@
+---
+import "katex/dist/katex.min.css";
+import "../styles/leccion.css";
+
+interface Props {
+  title: string;
+  lessonNumber: number;
+  description?: string;
+}
+
+const { title, lessonNumber, description } = Astro.props;
+---
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+
+    <title>{lessonNumber}: {title}</title>
+
+    {description && (
+      <meta name="description" content={description} />
+    )}
+  </head>
+
+  <body>
+    <header class="lesson-header">
+      <a href="/procesosdetransferenciademasa" class="back-link">
+        ← Todas las lecciones
+      </a>
+    </header>
+
+    <main class="lesson-container">
+      <article class="lesson-content">
+        <header class="lesson-title">
+          <span class="lesson-label">Lección {lessonNumber}</span>
+        </header>
+        <slot />
+      </article>
+    </main>
+  </body>
+</html>

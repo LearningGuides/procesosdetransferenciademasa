@@ -1,0 +1,982 @@
+---
+---
+
+<div class="simulation">
+  <div id="control-panel">
+    <div class="control-row">
+      <button id="btn-play" class="btn">
+        Reproducir / Pausa
+      </button>
+
+      <button id="btn-restart" class="btn">
+        Reiniciar
+      </button>
+    </div>
+
+    <div class="control-row">
+      <button
+        id="btn-toggle-fluid"
+        class="btn btn-toggle active"
+      >
+        Fluido: Activado
+      </button>
+
+      <button
+        id="btn-toggle-diffusion"
+        class="btn btn-toggle active"
+      >
+        Difusión: Activada
+      </button>
+    </div>
+
+    <div class="control-row">
+      <span class="control-label">
+        Modo de difusión:
+      </span>
+
+      <button
+        id="btn-mode-random"
+        class="btn btn-mode active"
+      >
+        Aleatoria
+      </button>
+
+      <button
+        id="btn-mode-constant"
+        class="btn btn-mode"
+      >
+        Constante
+      </button>
+
+      <button
+        id="btn-mode-gradient"
+        class="btn btn-mode"
+      >
+        Gradiente
+      </button>
+    </div>
+  </div>
+
+  <div id="canvas-container"></div>
+</div>
+
+<script>
+  import p5 from "p5";
+
+  const sketch = (p: p5) => {
+    const pipeConfig = {
+      x: 50,
+      y: 100,
+      width: 700,
+      height: 250,
+      perspectiveOffset: 20,
+    };
+
+    const flowConfig = {
+      baseVelocity: 2.5,
+      linesCount: 8,
+      color: "#1a5276",
+    };
+
+    const particleConfig = {
+      count: 15,
+      radius: 12,
+      color: "#3498db",
+      diffusionMax: 2,
+    };
+
+    const vectorColors = {
+      fluid: "#003366",
+      diffusion: "#e74c3c",
+      total: "#1abc9c",
+    };
+
+    type DiffusionMode =
+      | "random"
+      | "constant"
+      | "gradient";
+
+    const simState: {
+      fluidActive: boolean;
+      diffusionActive: boolean;
+      diffusionMode: DiffusionMode;
+    } = {
+      fluidActive: true,
+      diffusionActive: true,
+      diffusionMode: "random",
+    };
+
+    let particles: Particle[] = [];
+    let isPlaying = true;
+
+    class Particle {
+      pos: p5.Vector;
+      vFluid: p5.Vector;
+      vDiff: p5.Vector;
+      vTotal: p5.Vector;
+      diffTimer: number;
+      currentRandomDiffTarget: p5.Vector;
+
+      constructor() {
+        this.pos = p.createVector();
+        this.vFluid = p.createVector();
+        this.vDiff = p.createVector();
+        this.vTotal = p.createVector();
+        this.diffTimer = 0;
+        this.currentRandomDiffTarget = p.createVector();
+
+        this.reset();
+
+        this.pos.x = p.random(
+          pipeConfig.x,
+          pipeConfig.x + pipeConfig.width,
+        );
+      }
+
+      reset() {
+        this.pos.set(
+          pipeConfig.x + p.random(0, 50),
+          p.random(
+            pipeConfig.y + 20,
+            pipeConfig.y +
+              pipeConfig.height -
+              20,
+          ),
+        );
+
+        this.vFluid.set(0, 0);
+        this.vDiff.set(0, 0);
+        this.vTotal.set(0, 0);
+
+        this.diffTimer = p.random(30, 100);
+
+        const angle = p.random(p.TWO_PI);
+
+        this.currentRandomDiffTarget =
+          p5.Vector.fromAngle(angle).mult(
+            p.random(
+              0.5,
+              particleConfig.diffusionMax,
+            ),
+          );
+      }
+
+      update() {
+        this.updateFluidVelocity();
+        this.updateDiffusionVelocity();
+
+        this.vTotal = p5.Vector.add(
+          this.vFluid,
+          this.vDiff,
+        );
+
+        if (simState.fluidActive) {
+          this.pos.y +=
+            p.sin(
+              this.pos.x * 0.02 +
+                p.frameCount * 0.1,
+            ) * 0.2;
+        }
+
+        this.pos.add(this.vTotal);
+
+        this.checkBounds();
+      }
+
+      updateFluidVelocity() {
+        if (!simState.fluidActive) {
+          this.vFluid.set(0, 0);
+          return;
+        }
+
+        const variation =
+          p.noise(
+            this.pos.x * 0.01,
+            this.pos.y * 0.01,
+            p.frameCount * 0.01,
+          ) *
+            0.5 -
+          0.25;
+
+        this.vFluid.set(
+          flowConfig.baseVelocity + variation,
+          0,
+        );
+      }
+
+      updateDiffusionVelocity() {
+        if (!simState.diffusionActive) {
+          this.vDiff.set(0, 0);
+          return;
+        }
+
+        if (simState.diffusionMode === "random") {
+          this.updateRandomDiffusion();
+          return;
+        }
+
+        if (
+          simState.diffusionMode === "constant"
+        ) {
+          this.vDiff.set(
+            particleConfig.diffusionMax * 0.7,
+            p.sin(
+              p.frameCount * 0.1 +
+                this.pos.x,
+            ) * 0.2,
+          );
+
+          return;
+        }
+
+        let gradientFactor = p.map(
+          this.pos.x,
+          pipeConfig.x,
+          pipeConfig.x + pipeConfig.width,
+          1.5,
+          0.2,
+        );
+
+        gradientFactor = p.constrain(
+          gradientFactor,
+          0.1,
+          2,
+        );
+
+        this.vDiff.set(
+          particleConfig.diffusionMax *
+            0.5 *
+            gradientFactor,
+          p.sin(
+            p.frameCount * 0.1 +
+              this.pos.x,
+          ) * 0.2,
+        );
+      }
+
+      updateRandomDiffusion() {
+        this.diffTimer--;
+
+        if (this.diffTimer <= 0) {
+          const angle = p.random(p.TWO_PI);
+          const magnitude = p.random(
+            0.5,
+            particleConfig.diffusionMax,
+          );
+
+          this.currentRandomDiffTarget =
+            p5.Vector.fromAngle(angle).mult(
+              magnitude,
+            );
+
+          this.diffTimer = p.random(30, 100);
+        }
+
+        this.vDiff.lerp(
+          this.currentRandomDiffTarget,
+          0.1,
+        );
+      }
+
+      checkBounds() {
+        if (
+          this.pos.x >
+          pipeConfig.x +
+            pipeConfig.width +
+            20
+        ) {
+          this.reset();
+          this.pos.x = pipeConfig.x - 10;
+        }
+
+        if (
+          this.pos.x <
+          pipeConfig.x - 30
+        ) {
+          this.pos.x =
+            pipeConfig.x +
+            pipeConfig.width +
+            10;
+        }
+
+        const upperLimit =
+          pipeConfig.y +
+          particleConfig.radius;
+
+        const lowerLimit =
+          pipeConfig.y +
+          pipeConfig.height -
+          particleConfig.radius;
+
+        if (this.pos.y < upperLimit) {
+          this.pos.y = upperLimit;
+          this.vDiff.y *= -1;
+        }
+
+        if (this.pos.y > lowerLimit) {
+          this.pos.y = lowerLimit;
+          this.vDiff.y *= -1;
+        }
+      }
+
+      display() {
+        if (simState.diffusionActive) {
+          drawVector(
+            this.pos.x,
+            this.pos.y,
+            this.vDiff.x,
+            this.vDiff.y,
+            vectorColors.diffusion,
+            20,
+          );
+        }
+
+        if (this.vTotal.mag() > 0.1) {
+          drawVector(
+            this.pos.x,
+            this.pos.y,
+            this.vTotal.x,
+            this.vTotal.y,
+            vectorColors.total,
+            12,
+          );
+        }
+
+        p.noStroke();
+
+        p.fill(0, 0, 0, 30);
+        p.circle(
+          this.pos.x + 2,
+          this.pos.y + 2,
+          particleConfig.radius * 2,
+        );
+
+        p.fill(particleConfig.color);
+        p.circle(
+          this.pos.x,
+          this.pos.y,
+          particleConfig.radius * 2,
+        );
+
+        p.fill(255, 100);
+        p.circle(
+          this.pos.x - 3,
+          this.pos.y - 3,
+          particleConfig.radius,
+        );
+
+        p.fill(255);
+        p.textAlign(p.CENTER, p.CENTER);
+        p.textSize(12);
+        p.textStyle(p.BOLD);
+        p.text(
+          "A",
+          this.pos.x,
+          this.pos.y,
+        );
+      }
+    }
+
+    function resetParticles() {
+      particles = Array.from(
+        {
+          length: particleConfig.count,
+        },
+        () => new Particle(),
+      );
+    }
+
+    function drawPipe() {
+      const {
+        x,
+        y,
+        width,
+        height,
+        perspectiveOffset,
+      } = pipeConfig;
+
+      p.strokeWeight(2);
+      p.stroke(150, 180, 220);
+      p.fill(240, 248, 255, 100);
+
+      p.beginShape();
+
+      p.vertex(
+        x + perspectiveOffset,
+        y + perspectiveOffset,
+      );
+
+      p.vertex(
+        x + width + perspectiveOffset,
+        y + perspectiveOffset,
+      );
+
+      p.vertex(
+        x + width + perspectiveOffset,
+        y + height + perspectiveOffset,
+      );
+
+      p.vertex(
+        x + perspectiveOffset,
+        y + height + perspectiveOffset,
+      );
+
+      p.endShape(p.CLOSE);
+
+      p.line(
+        x,
+        y,
+        x + perspectiveOffset,
+        y + perspectiveOffset,
+      );
+
+      p.line(
+        x + width,
+        y,
+        x + width + perspectiveOffset,
+        y + perspectiveOffset,
+      );
+
+      p.line(
+        x + width,
+        y + height,
+        x + width + perspectiveOffset,
+        y + height + perspectiveOffset,
+      );
+
+      p.line(
+        x,
+        y + height,
+        x + perspectiveOffset,
+        y + height + perspectiveOffset,
+      );
+
+      p.stroke(100, 150, 200);
+      p.noFill();
+      p.rect(x, y, width, height, 10);
+    }
+
+    function drawStreamlines() {
+      const currentColor =
+        simState.fluidActive
+          ? flowConfig.color
+          : p.color(200, 200, 200, 100);
+
+      p.stroke(currentColor);
+      p.strokeWeight(1.5);
+      p.noFill();
+
+      const spacing =
+        pipeConfig.height /
+        (flowConfig.linesCount + 1);
+
+      for (
+        let index = 1;
+        index <= flowConfig.linesCount;
+        index++
+      ) {
+        const yPosition =
+          pipeConfig.y + index * spacing;
+
+        p.beginShape();
+
+        for (
+          let x = pipeConfig.x;
+          x <=
+          pipeConfig.x + pipeConfig.width;
+          x += 20
+        ) {
+          const y =
+            yPosition +
+            p.sin(
+              x * 0.01 +
+                p.frameCount * 0.05,
+            ) *
+              5;
+
+          p.vertex(x, y);
+        }
+
+        p.endShape();
+
+        const arrowY =
+          yPosition +
+          p.sin(
+            (pipeConfig.x +
+              pipeConfig.width) *
+              0.01 +
+              p.frameCount * 0.05,
+          ) *
+            5;
+
+        drawArrowHead(
+          pipeConfig.x +
+            pipeConfig.width,
+          arrowY,
+          0,
+          currentColor,
+        );
+      }
+    }
+
+    function drawArrowHead(
+      x: number,
+      y: number,
+      angle: number,
+      color: p5.Color | string,
+    ) {
+      p.push();
+      p.translate(x, y);
+      p.rotate(angle);
+      p.fill(color);
+      p.noStroke();
+      p.triangle(0, 0, -8, -4, -8, 4);
+      p.pop();
+    }
+
+    function drawVector(
+      x: number,
+      y: number,
+      velocityX: number,
+      velocityY: number,
+      color: string,
+      scale = 15,
+    ) {
+      if (
+        velocityX === 0 &&
+        velocityY === 0
+      ) {
+        return;
+      }
+
+      const endX =
+        x + velocityX * scale;
+
+      const endY =
+        y + velocityY * scale;
+
+      p.stroke(color);
+      p.strokeWeight(2);
+      p.line(x, y, endX, endY);
+
+      drawArrowHead(
+        endX,
+        endY,
+        p.atan2(
+          velocityY,
+          velocityX,
+        ),
+        color,
+      );
+    }
+
+    function drawLargeArrow(
+      x: number,
+      y: number,
+      length: number,
+      thickness: number,
+      color: string,
+    ) {
+      p.push();
+      p.translate(x, y);
+      p.fill(color);
+      p.noStroke();
+
+      p.rect(
+        0,
+        -thickness / 4,
+        length - thickness / 2,
+        thickness / 2,
+      );
+
+      p.triangle(
+        length - thickness / 2,
+        -thickness / 1.5,
+        length - thickness / 2,
+        thickness / 1.5,
+        length + thickness / 2,
+        0,
+      );
+
+      p.pop();
+    }
+
+    function drawLegend() {
+      const legendY =
+        pipeConfig.y +
+        pipeConfig.height +
+        60;
+
+      const startX = 100;
+      const spacing = 260;
+
+      p.textAlign(p.LEFT, p.CENTER);
+      p.textSize(16);
+      p.textStyle(p.NORMAL);
+
+      drawLargeArrow(
+        startX,
+        legendY,
+        40,
+        10,
+        vectorColors.fluid,
+      );
+
+      p.fill(vectorColors.fluid);
+
+      p.text(
+        "Movimiento del fluido",
+        startX + 50,
+        legendY,
+      );
+
+      drawLargeArrow(
+        startX + spacing,
+        legendY,
+        40,
+        6,
+        vectorColors.diffusion,
+      );
+
+      p.fill(vectorColors.diffusion);
+
+      p.text(
+        "Difusión",
+        startX + spacing + 50,
+        legendY,
+      );
+
+      drawLargeArrow(
+        startX + spacing * 2,
+        legendY,
+        40,
+        10,
+        vectorColors.total,
+      );
+
+      p.fill(vectorColors.total);
+
+      p.text(
+        "Flujo total",
+        startX + spacing * 2 + 50,
+        legendY,
+      );
+    }
+
+    function setupControls() {
+      const playButton =
+        document.querySelector<HTMLButtonElement>(
+          "#btn-play",
+        );
+
+      const restartButton =
+        document.querySelector<HTMLButtonElement>(
+          "#btn-restart",
+        );
+
+      const fluidButton =
+        document.querySelector<HTMLButtonElement>(
+          "#btn-toggle-fluid",
+        );
+
+      const diffusionButton =
+        document.querySelector<HTMLButtonElement>(
+          "#btn-toggle-diffusion",
+        );
+
+      const randomButton =
+        document.querySelector<HTMLButtonElement>(
+          "#btn-mode-random",
+        );
+
+      const constantButton =
+        document.querySelector<HTMLButtonElement>(
+          "#btn-mode-constant",
+        );
+
+      const gradientButton =
+        document.querySelector<HTMLButtonElement>(
+          "#btn-mode-gradient",
+        );
+
+      playButton?.addEventListener(
+        "click",
+        () => {
+          isPlaying = !isPlaying;
+
+          if (isPlaying) {
+            p.loop();
+          } else {
+            p.noLoop();
+          }
+        },
+      );
+
+      restartButton?.addEventListener(
+        "click",
+        () => {
+          resetParticles();
+
+          if (!isPlaying) {
+            p.redraw();
+          }
+        },
+      );
+
+      fluidButton?.addEventListener(
+        "click",
+        () => {
+          simState.fluidActive =
+            !simState.fluidActive;
+
+          fluidButton.classList.toggle(
+            "active",
+            simState.fluidActive,
+          );
+
+          fluidButton.textContent =
+            simState.fluidActive
+              ? "Fluido: Activado"
+              : "Fluido: Desactivado";
+
+          if (!isPlaying) {
+            p.redraw();
+          }
+        },
+      );
+
+      diffusionButton?.addEventListener(
+        "click",
+        () => {
+          simState.diffusionActive =
+            !simState.diffusionActive;
+
+          diffusionButton.classList.toggle(
+            "active",
+            simState.diffusionActive,
+          );
+
+          diffusionButton.textContent =
+            simState.diffusionActive
+              ? "Difusión: Activada"
+              : "Difusión: Desactivada";
+
+          if (!isPlaying) {
+            p.redraw();
+          }
+        },
+      );
+
+      const modeButtons = [
+        randomButton,
+        constantButton,
+        gradientButton,
+      ];
+
+      function setDiffusionMode(
+        mode: DiffusionMode,
+        activeButton:
+          | HTMLButtonElement
+          | null,
+      ) {
+        simState.diffusionMode = mode;
+
+        modeButtons.forEach((button) => {
+          button?.classList.remove(
+            "active",
+          );
+        });
+
+        activeButton?.classList.add(
+          "active",
+        );
+
+        if (!isPlaying) {
+          p.redraw();
+        }
+      }
+
+      randomButton?.addEventListener(
+        "click",
+        () => {
+          setDiffusionMode(
+            "random",
+            randomButton,
+          );
+        },
+      );
+
+      constantButton?.addEventListener(
+        "click",
+        () => {
+          setDiffusionMode(
+            "constant",
+            constantButton,
+          );
+        },
+      );
+
+      gradientButton?.addEventListener(
+        "click",
+        () => {
+          setDiffusionMode(
+            "gradient",
+            gradientButton,
+          );
+        },
+      );
+    }
+
+    p.setup = () => {
+      const canvas = p.createCanvas(
+        900,
+        500,
+      );
+
+      canvas.parent("canvas-container");
+
+      resetParticles();
+      setupControls();
+    };
+
+    p.draw = () => {
+      p.background(252, 252, 250);
+
+      drawPipe();
+      drawStreamlines();
+
+      if (simState.fluidActive) {
+        drawLargeArrow(
+          pipeConfig.x +
+            pipeConfig.width / 2 -
+            100,
+          pipeConfig.y +
+            pipeConfig.height / 2,
+          150,
+          40,
+          vectorColors.fluid,
+        );
+      }
+
+      drawLargeArrow(
+        pipeConfig.x +
+          pipeConfig.width +
+          20,
+        pipeConfig.y +
+          pipeConfig.height / 2,
+        80,
+        30,
+        vectorColors.total,
+      );
+
+      particles.forEach((particle) => {
+        particle.update();
+        particle.display();
+      });
+
+      drawLegend();
+    };
+  };
+
+  const container =
+    document.querySelector(
+      "#canvas-container",
+    );
+
+  if (container) {
+    new p5(sketch);
+  }
+</script>
+
+<style>
+  .simulation {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  #control-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow:
+      0 4px 10px
+      rgb(0 0 0 / 10%);
+  }
+
+  .control-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .control-label {
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 5px;
+    background: #0d2b56;
+    color: white;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      transform 0.2s;
+  }
+
+  .btn:hover {
+    background: #1a5276;
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn-toggle {
+    background: #2c3e50;
+  }
+
+  .btn-toggle.active {
+    background: #27ae60;
+  }
+
+  .btn-mode {
+    background: #8e44ad;
+  }
+
+  .btn-mode.active {
+    background: #f39c12;
+  }
+
+  #canvas-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow: auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow:
+      0 4px 10px
+      rgb(0 0 0 / 10%);
+  }
+
+  #canvas-container :global(canvas) {
+    display: block;
+    max-width: 100%;
+    height: auto !important;
+  }
+</style>

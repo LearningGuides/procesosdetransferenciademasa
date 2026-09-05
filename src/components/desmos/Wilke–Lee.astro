@@ -1,0 +1,40 @@
+<!-- Step 1: include our secure javascript file -->
+<script src="https://www.desmos.com/api/v1.12/calculator.js?apiKey=68fee52521914e31b546c567c36f33a2"></script>
+
+<!-- Step 2: add an element to the page -->
+<div id="calculator" style="height: 400px;"></div>
+
+<!-- Step 3: add the following lines of javascript -->
+<script>
+    var elt = document.getElementById('calculator');
+    var calculator = Desmos.GraphingCalculator(elt);
+
+
+    calculator.setExpression({
+    id: "ecuacion1",
+    latex: "D_{AB}=\\frac{10^{-4}(1.084-0.249\\sqrt{\\frac{1}{M_A}+\\frac{1}{M_B}})T^{3/2}\\sqrt{\\frac{1}{M_A}+\\frac{1}{M_B}}}{Pr_{AB}^{2}F}"
+  });
+  
+
+    calculator.setExpression({
+    id: "ecuacion2",
+    latex: "r_{AB} = \\frac{r_A+r_B}{2}"
+  });
+
+  calculator.setExpression({
+    id: "ecuacion3",
+    latex: "\\varepsilon_{AB} = \\sqrt{\\varepsilon_{A}\\varepsilon_{B}}" });
+</script>
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#calculator {
+    width: 100%;   /* Todo el ancho de la ventana */
+}
+</style>
