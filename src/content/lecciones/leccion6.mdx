@@ -1,0 +1,1687 @@
+---
+title: Dos películas, coeficientes globales, resistencias y correlaciones
+
+
+lessonNumber: 6
+
+---
+## Lección 6: Dos películas, coeficientes globales, resistencias y correlaciones
+
+En la Lección 5 trabajamos principalmente con:
+
+$$
+\underline{N_A=k_c\Delta C_A}
+$$
+
+Ahora estudiaremos los casos reales en los que una sustancia debe atravesar **dos fases**, por ejemplo de un gas hacia un líquido.
+
+El objetivo principal será aprender a calcular:
+
+$$
+\underline{k_G,\quad k_L,\quad K_G,\quad K_L}
+$$
+
+y a obtener coeficientes mediante:
+
+$$
+\underline{Re,\quad Sc,\quad Sh}
+$$
+
+---
+
+# 1. El problema de las dos fases
+
+Consideremos la absorción de una especie $A$ desde un gas hacia un líquido.
+
+Por ejemplo, un gas soluble entra en contacto con agua:
+
+$$
+\text{Gas}\longrightarrow\text{Líquido}
+$$
+
+La teoría de las dos películas representa el proceso como:
+
+$$
+\underline{
+\text{Gas}
+\rightarrow
+\text{película gaseosa}
+\rightarrow
+\text{interfase}
+\rightarrow
+\text{película líquida}
+\rightarrow
+\text{Líquido}
+}
+$$
+
+La transferencia encuentra dos resistencias:
+
+$$
+\underline{\text{Resistencia gaseosa}+\text{Resistencia líquida}}
+$$
+
+Es parecido a una corriente eléctrica atravesando resistencias en serie.
+
+Cuanto mayor sea la resistencia:
+
+$$
+\underline{\text{menor será la transferencia de masa}}
+$$
+
+---
+
+# 2. Coeficientes individuales
+
+Para evitar complicaciones de unidades, primero expresaremos ambas fases mediante **fracciones molares**.
+
+Para la película gaseosa:
+
+$$
+\underline{N_A=k_y(y_A-y_{Ai})}
+$$
+
+Para la película líquida:
+
+$$
+\underline{N_A=k_x(x_{Ai}-x_A)}
+$$
+
+donde:
+
+* $y_A$: fracción molar de $A$ en el seno del gas.
+* $y_{Ai}$: fracción molar de $A$ en la interfase gaseosa.
+* $x_{Ai}$: fracción molar de $A$ en la interfase líquida.
+* $x_A$: fracción molar de $A$ en el seno del líquido.
+* $k_y$: coeficiente individual basado en la fase gaseosa.
+* $k_x$: coeficiente individual basado en la fase líquida.
+
+En estado estacionario:
+
+$$
+\underline{N_{A,G}=N_{A,L}}
+$$
+
+Por tanto:
+
+$$
+\underline{
+k_y(y_A-y_{Ai})
+=
+k_x(x_{Ai}-x_A)
+}
+$$
+
+---
+
+# 3. Condición de equilibrio en la interfase
+
+En la interfase se supone que existe aproximadamente **equilibrio termodinámico** entre las fases.
+
+Una relación sencilla y muy utilizada es:
+
+$$
+\underline{y_A^*=mx_A}
+$$
+
+donde $m$ es la pendiente de la línea de equilibrio.
+
+En la interfase:
+
+$$
+\underline{y_{Ai}=mx_{Ai}}
+$$
+
+El símbolo $^*$ es muy importante.
+
+Por ejemplo:
+
+$$
+y_A^*
+$$
+
+significa la composición del gas que estaría en **equilibrio** con una determinada composición del líquido.
+
+De manera equivalente:
+
+$$
+x_A^*=\frac{y_A}{m}
+$$
+
+---
+
+# 4. ¿Por qué necesitamos un coeficiente global?
+
+Tenemos:
+
+$$
+N_A=k_y(y_A-y_{Ai})
+$$
+
+El problema es que $y_{Ai}$ generalmente **no se conoce**.
+
+También tenemos:
+
+$$
+N_A=k_x(x_{Ai}-x_A)
+$$
+
+pero $x_{Ai}$ tampoco suele conocerse.
+
+En un equipo industrial resulta mucho más sencillo medir:
+
+$$
+y_A
+$$
+
+en el gas y:
+
+$$
+x_A
+$$
+
+en el líquido.
+
+Por ello definimos un **coeficiente global**.
+
+Basado en la fase gaseosa:
+
+$$
+\underline{
+N_A=K_y(y_A-y_A^*)
+}
+$$
+
+Basado en la fase líquida:
+
+$$
+\underline{
+N_A=K_x(x_A^*-x_A)
+}
+$$
+
+Así evitamos necesitar las concentraciones interfaciales.
+
+---
+
+# 5. Resistencias a la transferencia de masa
+
+Esta es una de las partes más importantes de toda la lección.
+
+Para una relación lineal:
+
+$$
+y^*=mx
+$$
+
+el coeficiente global basado en la fase gaseosa satisface:
+
+$$
+\underline{
+\frac{1}{K_y}
+=
+\frac{1}{k_y}
++
+\frac{m}{k_x}
+}
+$$
+
+Interpretémoslo.
+
+La resistencia total es:
+
+$$
+\underline{
+R_T=R_G+R_L
+}
+$$
+
+donde:
+
+$$
+R_T=\frac{1}{K_y}
+$$
+
+$$
+R_G=\frac{1}{k_y}
+$$
+
+y:
+
+$$
+R_L=\frac{m}{k_x}
+$$
+
+Por tanto:
+
+$$
+\underline{
+\underbrace{\frac{1}{K_y}}_{\text{resistencia total}}
+=
+\underbrace{\frac{1}{k_y}}_{\text{resistencia gas}}
++
+\underbrace{\frac{m}{k_x}}_{\text{resistencia líquido}}
+}
+$$
+
+---
+
+# 6. Coeficiente global basado en el líquido
+
+También podemos expresar todo respecto a la fase líquida:
+
+$$
+\underline{
+N_A=K_x(x_A^*-x_A)
+}
+$$
+
+El coeficiente correspondiente es:
+
+$$
+\underline{
+\frac{1}{K_x}
+=
+\frac{1}{mk_y}
++
+\frac{1}{k_x}
+}
+$$
+
+Por tanto tenemos dos ecuaciones fundamentales:
+
+$$
+\underline{
+\frac{1}{K_y}
+=
+\frac{1}{k_y}
++
+\frac{m}{k_x}
+}
+$$
+
+y:
+
+$$
+\underline{
+\frac{1}{K_x}
+=
+\frac{1}{mk_y}
++
+\frac{1}{k_x}
+}
+$$
+
+**Atención:** estas expresiones corresponden a coeficientes definidos con fracciones molares y una relación de equilibrio $y^*=mx$. Si el problema utiliza concentración o presión parcial, hay que emplear ecuaciones consistentes con esas definiciones y unidades.
+
+---
+
+# 7. Ejercicio 1 — Cálculo del coeficiente global
+
+Supongamos:
+
+$$
+k_y=0.040\;mol/(m^2s)
+$$
+
+$$
+k_x=0.060\;mol/(m^2s)
+$$
+
+y:
+
+$$
+m=1.5
+$$
+
+Determine $K_y$.
+
+Utilizamos:
+
+$$
+\frac{1}{K_y}
+=
+\frac{1}{k_y}
++
+\frac{m}{k_x}
+$$
+
+Sustituimos:
+
+$$
+\frac{1}{K_y}
+=
+\frac{1}{0.040}
++
+\frac{1.5}{0.060}
+$$
+
+Primera resistencia:
+
+$$
+\frac{1}{0.040}=25
+$$
+
+Segunda resistencia:
+
+$$
+\frac{1.5}{0.060}=25
+$$
+
+Entonces:
+
+$$
+\frac{1}{K_y}=25+25
+$$
+
+$$
+\frac{1}{K_y}=50
+$$
+
+Invertimos:
+
+$$
+\underline{K_y=0.020\;mol/(m^2s)}
+$$
+
+Observa que:
+
+$$
+K_y<k_y
+$$
+
+porque el coeficiente global incorpora **ambas resistencias**.
+
+---
+
+# 8. ¿Cuál fase controla la transferencia?
+
+Este concepto aparece constantemente en exámenes y diseño de equipos.
+
+Tenemos:
+
+$$
+\frac{1}{K_y}
+=
+\underbrace{\frac{1}{k_y}}_{R_G}
++
+\underbrace{\frac{m}{k_x}}_{R_L}
+$$
+
+Si:
+
+$$
+R_G\gg R_L
+$$
+
+la resistencia gaseosa domina.
+
+Entonces aproximadamente:
+
+$$
+\underline{K_y\approx k_y}
+$$
+
+Por otro lado, si:
+
+$$
+R_L\gg R_G
+$$
+
+la fase líquida controla la transferencia.
+
+La regla práctica es:
+
+$$
+\underline{\text{La resistencia más grande controla el proceso}}
+$$
+
+---
+
+# 9. Ejercicio 2 — Identificar la resistencia dominante
+
+Tenemos:
+
+$$
+k_y=0.025
+$$
+
+$$
+k_x=0.20
+$$
+
+$$
+m=0.50
+$$
+
+Calculamos la resistencia gaseosa:
+
+$$
+R_G=\frac{1}{k_y}
+$$
+
+$$
+R_G=\frac{1}{0.025}=40
+$$
+
+Ahora la resistencia líquida expresada sobre la misma base:
+
+$$
+R_L=\frac{m}{k_x}
+$$
+
+$$
+R_L=\frac{0.50}{0.20}=2.5
+$$
+
+Entonces:
+
+$$
+R_G=40
+$$
+
+$$
+R_L=2.5
+$$
+
+Claramente:
+
+$$
+R_G\gg R_L
+$$
+
+Por tanto:
+
+$$
+\underline{\text{la fase gaseosa controla la transferencia}}
+$$
+
+El coeficiente global sería:
+
+$$
+\frac{1}{K_y}=40+2.5=42.5
+$$
+
+$$
+K_y=\frac{1}{42.5}
+$$
+
+$$
+\underline{K_y=0.0235}
+$$
+
+Observa:
+
+$$
+k_y=0.025
+$$
+
+y:
+
+$$
+K_y=0.0235
+$$
+
+Son valores muy cercanos porque la resistencia del gas domina.
+
+---
+
+# 10. Porcentaje de resistencia
+
+Podemos calcular qué porcentaje de la resistencia total corresponde a cada fase.
+
+Para el ejercicio anterior:
+
+$$
+R_T=42.5
+$$
+
+Entonces:
+
+$$
+\%R_G=
+\frac{40}{42.5}(100)
+$$
+
+$$
+\underline{\%R_G=94.1\%}
+$$
+
+Para el líquido:
+
+$$
+\%R_L=
+\frac{2.5}{42.5}(100)
+$$
+
+$$
+\underline{\%R_L=5.9\%}
+$$
+
+Esto confirma que el proceso está prácticamente controlado por la película gaseosa.
+
+---
+
+# 11. Cálculo del flujo usando $K_y$
+
+Una vez obtenido $K_y$, utilizamos:
+
+$$
+\underline{
+N_A=K_y(y_A-y_A^*)
+}
+$$
+
+Supongamos:
+
+$$
+K_y=0.0235\;mol/(m^2s)
+$$
+
+$$
+y_A=0.15
+$$
+
+y el líquido tiene:
+
+$$
+x_A=0.04
+$$
+
+con:
+
+$$
+m=0.50
+$$
+
+Primero necesitamos obtener:
+
+$$
+y_A^*
+$$
+
+Como:
+
+$$
+y_A^*=mx_A
+$$
+
+entonces:
+
+$$
+y_A^*=(0.50)(0.04)
+$$
+
+$$
+y_A^*=0.020
+$$
+
+La fuerza impulsora global es:
+
+$$
+y_A-y_A^*
+=
+0.15-0.020
+$$
+
+$$
+\Delta y_A=0.130
+$$
+
+Finalmente:
+
+$$
+N_A=(0.0235)(0.130)
+$$
+
+$$
+\underline{
+N_A=3.06\times10^{-3}\;mol/(m^2s)
+}
+$$
+
+---
+
+# 12. De flujo a transferencia total
+
+Supongamos que el área de contacto gas-líquido es:
+
+$$
+A=50\;m^2
+$$
+
+Entonces:
+
+$$
+\dot n_A=N_AA
+$$
+
+$$
+\dot n_A=
+(3.06\times10^{-3})(50)
+$$
+
+$$
+\underline{
+\dot n_A=0.153\;mol/s
+}
+$$
+
+Por hora:
+
+$$
+0.153(3600)
+$$
+
+$$
+\underline{
+\dot n_A\approx551\;mol/h
+}
+$$
+
+---
+
+# 13. ¿Cómo obtenemos los coeficientes $k$?
+
+Hasta ahora los problemas nos proporcionaron valores de $k$.
+
+Pero en ingeniería muchas veces tenemos que **calcularlos**.
+
+Aquí aparecen tres números adimensionales fundamentales:
+
+$$
+\underline{Re,\quad Sc,\quad Sh}
+$$
+
+Estos números permiten relacionar las propiedades del fluido y las condiciones de operación con el coeficiente de transferencia.
+
+---
+
+# 14. Número de Reynolds
+
+El número de Reynolds es:
+
+$$
+\underline{
+Re=\frac{\rho vL}{\mu}
+}
+$$
+
+También puede escribirse:
+
+$$
+\underline{
+Re=\frac{vL}{\nu}
+}
+$$
+
+donde:
+
+* $\rho$ = densidad, $\mathrm{kg/m^3}$
+* $v$ = velocidad característica, $\mathrm{m/s}$
+* $L$ = longitud característica, $m$
+* $\mu$ = viscosidad dinámica, $\mathrm{Pa\,s}$
+* $\nu=\mu/\rho$ = viscosidad cinemática, $\mathrm{m^2/s}$
+
+El Reynolds caracteriza principalmente el comportamiento hidrodinámico.
+
+En términos generales:
+
+$$
+Re\text{ bajo}\rightarrow\text{mayor importancia de efectos viscosos}
+$$
+
+$$
+Re\text{ alto}\rightarrow\text{mayor importancia de efectos inerciales}
+$$
+
+Los límites entre flujo laminar y turbulento dependen de la geometría, por lo que no debe utilizarse un único valor crítico para todos los sistemas.
+
+---
+
+# 15. Número de Schmidt
+
+El número de Schmidt es:
+
+$$
+\underline{
+Sc=\frac{\mu}{\rho D_{AB}}
+}
+$$
+
+Como:
+
+$$
+\nu=\frac{\mu}{\rho}
+$$
+
+también:
+
+$$
+\underline{
+Sc=\frac{\nu}{D_{AB}}
+}
+$$
+
+El número de Schmidt compara la difusión de cantidad de movimiento con la difusión molecular de masa.
+
+Es análogo al número de Prandtl utilizado en transferencia de calor.
+
+---
+
+# 16. Número de Sherwood
+
+El número más directamente relacionado con el coeficiente de transferencia de masa es:
+
+$$
+\underline{
+Sh=\frac{k_cL}{D_{AB}}
+}
+$$
+
+De aquí podemos despejar:
+
+$$
+\underline{
+k_c=\frac{ShD_{AB}}{L}
+}
+$$
+
+Esta ecuación es extremadamente importante.
+
+El procedimiento típico de un problema es:
+
+$$
+Re\rightarrow Sc\rightarrow Sh\rightarrow k_c
+$$
+
+---
+
+# 17. Correlaciones de transferencia de masa
+
+Experimentalmente se han desarrollado correlaciones del tipo:
+
+$$
+\underline{
+Sh=aRe^bSc^c
+}
+$$
+
+Los valores:
+
+$$
+a,\quad b,\quad c
+$$
+
+dependen de:
+
+* geometría;
+* régimen de flujo;
+* configuración del equipo;
+* condiciones de operación.
+
+Por ejemplo, para **flujo turbulento interno en un tubo liso**, bajo determinadas condiciones, puede utilizarse una correlación del tipo:
+
+$$
+\underline{
+Sh=0.023Re^{0.83}Sc^{0.44}
+}
+$$
+
+No es una ecuación universal. En un problema real debemos verificar que la correlación corresponda a la geometría y al rango de $Re$ y $Sc$ considerados.
+
+---
+
+# 18. Ejercicio 3 — Cálculo de $Re$
+
+Un fluido circula con:
+
+$$
+\rho=1000\;kg/m^3
+$$
+
+$$
+v=0.50\;m/s
+$$
+
+$$
+L=0.020\;m
+$$
+
+$$
+\mu=1.0\times10^{-3}\;Pa\,s
+$$
+
+Calcule $Re$.
+
+Aplicamos:
+
+$$
+Re=\frac{\rho vL}{\mu}
+$$
+
+Sustituimos:
+
+$$
+Re=
+\frac{(1000)(0.50)(0.020)}
+{1.0\times10^{-3}}
+$$
+
+Numerador:
+
+$$
+(1000)(0.50)(0.020)=10
+$$
+
+Entonces:
+
+$$
+Re=\frac{10}{0.001}
+$$
+
+$$
+\underline{Re=10\,000}
+$$
+
+---
+
+# 19. Ejercicio 4 — Cálculo de Schmidt
+
+Para el mismo sistema:
+
+$$
+\mu=1.0\times10^{-3}\;Pa\,s
+$$
+
+$$
+\rho=1000\;kg/m^3
+$$
+
+$$
+D_{AB}=1.0\times10^{-9}\;m^2/s
+$$
+
+Calculamos:
+
+$$
+Sc=
+\frac{\mu}
+{\rho D_{AB}}
+$$
+
+$$
+Sc=
+\frac{1.0\times10^{-3}}
+{(1000)(1.0\times10^{-9})}
+$$
+
+El denominador es:
+
+$$
+1000(10^{-9})=10^{-6}
+$$
+
+Entonces:
+
+$$
+Sc=
+\frac{10^{-3}}{10^{-6}}
+$$
+
+$$
+\underline{Sc=1000}
+$$
+
+---
+
+# 20. Ejercicio 5 — De $Sh$ a $k_c$
+
+Supongamos que una correlación válida para nuestro sistema proporciona:
+
+$$
+Sh=150
+$$
+
+Además:
+
+$$
+D_{AB}=1.0\times10^{-9}\;m^2/s
+$$
+
+$$
+L=0.020\;m
+$$
+
+Sabemos:
+
+$$
+Sh=\frac{k_cL}{D_{AB}}
+$$
+
+Despejamos:
+
+$$
+k_c=\frac{ShD_{AB}}{L}
+$$
+
+Sustituimos:
+
+$$
+k_c=
+\frac{(150)(1.0\times10^{-9})}
+{0.020}
+$$
+
+$$
+k_c=
+\frac{1.5\times10^{-7}}
+{2.0\times10^{-2}}
+$$
+
+Por tanto:
+
+$$
+\underline{
+k_c=7.5\times10^{-6}\;m/s
+}
+$$
+
+---
+
+# 21. Ejercicio completo — $Re\rightarrow Sc\rightarrow Sh\rightarrow k_c$
+
+Ahora resolveremos el procedimiento completo.
+
+Un fluido circula por un tubo. Se conocen:
+
+$$
+\rho=900\;kg/m^3
+$$
+
+$$
+\mu=2.0\times10^{-3}\;Pa\,s
+$$
+
+$$
+v=1.5\;m/s
+$$
+
+$$
+D=0.050\;m
+$$
+
+$$
+D_{AB}=2.0\times10^{-9}\;m^2/s
+$$
+
+Supongamos que para las condiciones del problema se especifica utilizar:
+
+$$
+Sh=0.023Re^{0.83}Sc^{0.44}
+$$
+
+Determine $k_c$.
+
+## Paso 1. Reynolds
+
+$$
+Re=\frac{\rho vD}{\mu}
+$$
+
+$$
+Re=
+\frac{(900)(1.5)(0.050)}
+{2.0\times10^{-3}}
+$$
+
+El numerador es:
+
+$$
+900(1.5)(0.05)=67.5
+$$
+
+Entonces:
+
+$$
+Re=\frac{67.5}{0.002}
+$$
+
+$$
+\underline{Re=33\,750}
+$$
+
+---
+
+## Paso 2. Schmidt
+
+$$
+Sc=\frac{\mu}{\rho D_{AB}}
+$$
+
+$$
+Sc=
+\frac{2.0\times10^{-3}}
+{(900)(2.0\times10^{-9})}
+$$
+
+$$
+Sc=
+\frac{2.0\times10^{-3}}
+{1.8\times10^{-6}}
+$$
+
+$$
+\underline{Sc\approx1111}
+$$
+
+---
+
+## Paso 3. Sherwood
+
+Utilizamos:
+
+$$
+Sh=0.023Re^{0.83}Sc^{0.44}
+$$
+
+Sustitu:
+
+$$
+Sh=
+0.023(33750)^{0.83}(1111)^{0.44}
+$$
+
+Aproximadamente:
+
+$$
+(33750)^{0.83}\approx5748
+$$
+
+y:
+
+$$
+(1111)^{0.44}\approx21.9
+$$
+
+Entonces:
+
+$$
+Sh\approx
+0.023(5748)(21.9)
+$$
+
+$$
+\underline{Sh\approx2895}
+$$
+
+---
+
+## Paso 4. Calcular $k_c$
+
+Sabemos:
+
+$$
+Sh=\frac{k_cD}{D_{AB}}
+$$
+
+Por tanto:
+
+$$
+k_c=\frac{ShD_{AB}}{D}
+$$
+
+Sustituimos:
+
+$$
+k_c=
+\frac{(2895)(2.0\times10^{-9})}
+{0.050}
+$$
+
+$$
+\underline{
+k_c\approx1.16\times10^{-4}\;m/s
+}
+$$
+
+Este tipo de ejercicio es uno de los más importantes del tema.
+
+---
+
+# 22. Efecto de la velocidad
+
+Supongamos una correlación:
+
+$$
+Sh=aRe^{0.8}Sc^{1/3}
+$$
+
+Como:
+
+$$
+Re\propto v
+$$
+
+entonces:
+
+$$
+Sh\propto v^{0.8}
+$$
+
+y debido a que:
+
+$$
+k_c=\frac{ShD_{AB}}{L}
+$$
+
+manteniendo las demás variables constantes:
+
+$$
+\underline{k_c\propto v^{0.8}}
+$$
+
+¿Qué ocurre si duplicamos la velocidad?
+
+$$
+\frac{k_{c,2}}{k_{c,1}}
+=
+\left(
+\frac{v_2}{v_1}
+\right)^{0.8}
+$$
+
+Si:
+
+$$
+v_2=2v_1
+$$
+
+entonces:
+
+$$
+\frac{k_{c,2}}{k_{c,1}}
+=
+2^{0.8}
+$$
+
+$$
+2^{0.8}\approx1.74
+$$
+
+Por tanto:
+
+$$
+\underline{k_{c,2}\approx1.74k_{c,1}}
+$$
+
+Duplicar la velocidad incrementaría $k_c$ aproximadamente un **74 %** para esa correlación.
+
+---
+
+# 23. Ejercicio de análisis de resistencias
+
+Consideremos:
+
+$$
+k_y=0.030
+$$
+
+$$
+k_x=0.015
+$$
+
+$$
+m=2.0
+$$
+
+Determine:
+
+1. $K_y$
+2. La resistencia gaseosa.
+3. La resistencia líquida.
+4. El porcentaje correspondiente a cada fase.
+5. Qué fase controla.
+
+### Resistencia gaseosa
+
+$$
+R_G=\frac{1}{k_y}
+$$
+
+$$
+R_G=\frac{1}{0.030}
+$$
+
+$$
+R_G=33.33
+$$
+
+### Resistencia líquida
+
+$$
+R_L=\frac{m}{k_x}
+$$
+
+$$
+R_L=\frac{2.0}{0.015}
+$$
+
+$$
+R_L=133.33
+$$
+
+### Resistencia total
+
+$$
+R_T=33.33+133.33
+$$
+
+$$
+R_T=166.66
+$$
+
+Entonces:
+
+$$
+K_y=\frac{1}{166.66}
+$$
+
+$$
+\underline{K_y\approx0.0060}
+$$
+
+Ahora los porcentajes.
+
+Gas:
+
+$$
+\frac{33.33}{166.66}(100)
+$$
+
+$$
+\underline{R_G\approx20\%}
+$$
+
+Líquido:
+
+$$
+\frac{133.33}{166.66}(100)
+$$
+
+$$
+\underline{R_L\approx80\%}
+$$
+
+Por tanto:
+
+$$
+\underline{\text{la película líquida controla principalmente el proceso}}
+$$
+
+Esto tiene una consecuencia práctica importante: si queremos aumentar considerablemente la transferencia, será más efectivo reducir la **resistencia líquida** que intentar mejorar una fase que solo representa el 20 % de la resistencia total.
+
+---
+
+# 24. Analogía con transferencia de calor
+
+Si has estudiado transferencia de calor, probablemente conoces:
+
+$$
+q=UA\Delta T
+$$
+
+En transferencia de masa tenemos una estructura muy parecida:
+
+$$
+\dot n_A=K A\Delta C
+$$
+
+o:
+
+$$
+\dot n_A=K_yA\Delta y
+$$
+
+La analogía es:
+
+$$
+\underline{
+\begin{array}{ccc}
+\text{Calor} && \text{Masa}\\
+q && \dot n_A\\
+U && K\\
+\Delta T && \Delta C,\Delta y,\Delta P
+\end{array}
+}
+$$
+
+En ambos fenómenos aparecen:
+
+* fuerza impulsora;
+* coeficientes de transferencia;
+* área;
+* resistencias;
+* números adimensionales.
+
+---
+
+# 25. Mapa general de ecuaciones
+
+Estas son las ecuaciones principales que conviene dominar.
+
+### Difusión — Fick
+
+$$
+\underline{
+J_A=-D_{AB}\frac{dC_A}{dz}
+}
+$$
+
+Para un perfil lineal simplificado:
+
+$$
+\underline{
+J_A=
+\frac{D_{AB}}{L}
+(C_{A,1}-C_{A,2})
+}
+$$
+
+### Coeficiente individual
+
+$$
+\underline{
+N_A=k_c(C_{A,i}-C_{A,b})
+}
+$$
+
+### Transferencia total
+
+$$
+\underline{
+\dot n_A=N_AA
+}
+$$
+
+### Gas
+
+$$
+\underline{
+N_A=k_y(y_A-y_{Ai})
+}
+$$
+
+### Líquido
+
+$$
+\underline{
+N_A=k_x(x_{Ai}-x_A)
+}
+$$
+
+### Equilibrio
+
+$$
+\underline{y^*=mx}
+$$
+
+### Coeficiente global basado en gas
+
+$$
+\underline{
+N_A=K_y(y_A-y_A^*)
+}
+$$
+
+$$
+\underline{
+\frac{1}{K_y}
+=
+\frac{1}{k_y}
++
+\frac{m}{k_x}
+}
+$$
+
+### Coeficiente global basado en líquido
+
+$$
+\underline{
+N_A=K_x(x_A^*-x_A)
+}
+$$
+
+$$
+\underline{
+\frac{1}{K_x}
+=
+\frac{1}{mk_y}
++
+\frac{1}{k_x}
+}
+$$
+
+### Reynolds
+
+$$
+\underline{
+Re=\frac{\rho vL}{\mu}
+}
+$$
+
+### Schmidt
+
+$$
+\underline{
+Sc=\frac{\mu}{\rho D_{AB}}
+}
+$$
+
+### Sherwood
+
+$$
+\underline{
+Sh=\frac{k_cL}{D_{AB}}
+}
+$$
+
+### Correlación general
+
+$$
+\underline{
+Sh=aRe^bSc^c
+}
+$$
+
+### Obtener $k_c$
+
+$$
+\underline{
+k_c=\frac{ShD_{AB}}{L}
+}
+$$
+
+---
+
+# 26. Ejercicios finales
+
+### Problema 1 — Fick
+
+Una especie tiene:
+
+$$
+D_{AB}=1.8\times10^{-9}\;m^2/s
+$$
+
+y atraviesa una película de:
+
+$$
+L=0.8\;mm
+$$
+
+Las concentraciones son:
+
+$$
+C_{A,1}=8.0\;mol/m^3
+$$
+
+$$
+C_{A,2}=2.0\;mol/m^3
+$$
+
+Calcula $J_A$.
+
+**Pista importante:** primero convierte:
+
+$$
+0.8\;mm=8\times10^{-4}\;m
+$$
+
+---
+
+### Problema 2 — Coeficiente global
+
+Se tienen:
+
+$$
+k_y=0.050
+$$
+
+$$
+k_x=0.080
+$$
+
+$$
+m=1.2
+$$
+
+Determina:
+
+$$
+K_y
+$$
+
+y calcula qué porcentaje de la resistencia total corresponde a cada fase.
+
+---
+
+### Problema 3 — Flujo global
+
+Para el sistema anterior:
+
+$$
+y_A=0.20
+$$
+
+$$
+x_A=0.050
+$$
+
+Utiliza:
+
+$$
+y_A^*=mx_A
+$$
+
+y determina:
+
+$$
+N_A=K_y(y_A-y_A^*)
+$$
+
+Si:
+
+$$
+A=25\;m^2
+$$
+
+calcula también:
+
+$$
+\dot n_A
+$$
+
+---
+
+### Problema 4 — Números adimensionales
+
+Un líquido presenta:
+
+$$
+\rho=950\;kg/m^3
+$$
+
+$$
+\mu=1.5\times10^{-3}\;Pa\,s
+$$
+
+$$
+v=2.0\;m/s
+$$
+
+$$
+L=0.030\;m
+$$
+
+$$
+D_{AB}=1.5\times10^{-9}\;m^2/s
+$$
+
+Calcula:
+
+$$
+Re
+$$
+
+y:
+
+$$
+Sc
+$$
+
+---
+
+### Problema 5 — Problema completo
+
+Utilizando los datos del problema 4, supón que una correlación apropiada para el sistema proporciona:
+
+$$
+Sh=0.023Re^{0.83}Sc^{0.44}
+$$
+
+Calcula:
+
+$$
+Sh
+$$
+
+y posteriormente:
+
+$$
+\underline{k_c=\frac{ShD_{AB}}{L}}
+$$
+
+Finalmente, si:
+
+$$
+C_{A,i}=4.0\;mol/m^3
+$$
+
+$$
+C_{A,b}=1.0\;mol/m^3
+$$
+
+calcula:
+
+$$
+N_A
+$$
+
+mediante:
+
+$$
+\underline{N_A=k_c(C_{A,i}-C_{A,b})}
+$$
+
+Este último ejercicio reúne prácticamente **todo el procedimiento de cálculo de un coeficiente de transferencia de masa y su utilización para obtener el flujo**.
