@@ -1,0 +1,1917 @@
+---
+title: Método de McCabe–Thiele
+lessonNumber: 9
+---
+# Lección 9. Método de McCabe–Thiele
+
+
+## 1. Fundamento del método
+
+
+### Propósito del método
+
+El **método de McCabe–Thiele** es un procedimiento gráfico para analizar una destilación binaria y determinar el número de **etapas teóricas** necesarias para conseguir una separación especificada.
+
+La construcción se realiza sobre un diagrama:
+
+$$
+\underline{y\text{ vs. }x}
+$$
+
+donde $x$ representa la fracción molar del componente más volátil en el líquido y $y$ su fracción molar en el vapor.
+
+### Tres fundamentos
+
+McCabe–Thiele combina:
+
+$$
+\underline{\text{Equilibrio}}+\underline{\text{Balances de materia}}+\underline{\text{Etapas teóricas}}
+$$
+
+Cada elemento aporta una parte diferente de la solución.
+
+### Equilibrio frente a operación
+
+La curva de equilibrio establece qué composiciones de líquido y vapor pueden coexistir en equilibrio.
+
+Las rectas de operación relacionan las composiciones de líquido y vapor mediante los balances de materia de la columna.
+
+La combinación de ambas permite construir y contar gráficamente las etapas.
+
+---
+
+# 2. Suposiciones del método
+
+
+### Desbordamiento molar constante
+
+La simplificación principal consiste en suponer **desbordamiento molar constante**.
+
+Dentro de cada sección:
+
+$$
+L\approx\text{constante}
+$$
+
+$$
+V\approx\text{constante}
+$$
+
+Los caudales molares internos de líquido y vapor se consideran aproximadamente constantes.
+
+**Aplicación numérica:** si en diferentes etapas de la sección de rectificación se obtienen aproximadamente:
+
+$$
+L_1=80,\qquad L_2=80.5,\qquad L_3=79.8\ \text{kmol/h}
+$$
+
+puede adoptarse aproximadamente:
+
+$$
+\underline{L\approx80\ \text{kmol/h}}
+$$
+
+De manera similar, si:
+
+$$
+V_1=120,\qquad V_2=119.7,\qquad V_3=120.3\ \text{kmol/h}
+$$
+
+se puede trabajar con:
+
+$$
+\underline{V\approx120\ \text{kmol/h}}
+$$
+
+### Condiciones que favorecen la aproximación
+
+Esta aproximación resulta razonable cuando los calores molares de vaporización son similares, las pérdidas de calor son pequeñas y los efectos de calor de mezcla no son demasiado importantes.
+
+### Equilibrio en cada etapa
+
+También se supone que cada etapa teórica alcanza el equilibrio:
+
+$$
+y_n=y^*(x_n)
+$$
+
+donde $y^*$ representa la composición del vapor en equilibrio con una composición líquida determinada.
+
+**Aplicación numérica:** si para una etapa se tiene:
+
+$$
+x_n=0.40
+$$
+
+y la curva de equilibrio indica:
+
+$$
+y^*(0.40)=0.62
+$$
+
+entonces:
+
+$$
+\underline{y_n=0.62}
+$$
+
+Estas simplificaciones permiten representar los balances mediante **rectas de operación**.
+
+---
+
+# 3. Elementos del diagrama
+
+
+### Diagonal
+
+El primer elemento es:
+
+$$
+\underline{y=x}
+$$
+
+La diagonal representa los puntos donde las composiciones del líquido y del vapor son iguales.
+
+**Aplicación numérica:** para:
+
+$$
+x=0.60
+$$
+
+sobre la diagonal:
+
+$$
+y=x=0.60
+$$
+
+por lo que se obtiene el punto:
+
+$$
+\underline{(0.60,0.60)}
+$$
+
+### Curva de equilibrio
+
+Se incorpora:
+
+$$
+\underline{y=y^*(x)}
+$$
+
+Para el comportamiento regular descrito en el material, tomando como referencia el componente más volátil:
+
+$$
+y^*>x
+$$
+
+por lo que la curva se sitúa por encima de la diagonal.
+
+**Aplicación numérica:** si para:
+
+$$
+x=0.40
+$$
+
+los datos de equilibrio proporcionan:
+
+$$
+y^*=0.62
+$$
+
+se verifica:
+
+$$
+0.62>0.40
+$$
+
+y, por tanto:
+
+$$
+\underline{y^*>x}
+$$
+
+### Líneas adicionales
+
+Posteriormente se incorporan la **recta de rectificación**, la **línea $q$** y la **recta de agotamiento**.
+
+Entre las rectas de operación y la curva de equilibrio se construirán los escalones que representan las etapas teóricas.
+
+---
+
+# 4. Recta de rectificación
+
+
+### Ecuación
+
+Para la sección situada por encima de la alimentación:
+
+$$
+\underline{y=\frac{R}{R+1}x+\frac{x_D}{R+1}}
+$$
+
+donde $R$ es la relación de reflujo y $x_D$ la composición del destilado.
+
+**Aplicación numérica:** para:
+
+$$
+R=2,\qquad x_D=0.90,\qquad x=0.45
+$$
+
+se obtiene:
+
+$$
+y=\frac{2}{3}(0.45)+\frac{0.90}{3}
+$$
+
+$$
+y=0.300+0.300
+$$
+
+por tanto:
+
+$$
+\underline{y=0.600}
+$$
+
+### Pendiente
+
+Comparando con:
+
+$$
+y=mx+b
+$$
+
+se obtiene:
+
+$$
+\underline{m=\frac{R}{R+1}}
+$$
+
+El reflujo determina directamente la pendiente de la recta.
+
+**Aplicación numérica:** para $R=2$:
+
+$$
+m=\frac{2}{2+1}=\frac{2}{3}
+$$
+
+por tanto:
+
+$$
+\underline{m=0.667}
+$$
+
+### Intersección
+
+La ordenada al origen es:
+
+$$
+\underline{b=\frac{x_D}{R+1}}
+$$
+
+Por tanto, $R$ y $x_D$ proporcionan la información necesaria para definir la recta superior.
+
+**Aplicación numérica:** si:
+
+$$
+x_D=0.90,\qquad R=2
+$$
+
+entonces:
+
+$$
+b=\frac{0.90}{3}
+$$
+
+y:
+
+$$
+\underline{b=0.300}
+$$
+
+Así, la recta completa es:
+
+$$
+\underline{y=0.667x+0.300}
+$$
+
+---
+
+# 5. Construcción de la recta de rectificación
+
+
+### Datos
+
+Para:
+
+$$
+x_D=0.90,\qquad R=2
+$$
+
+se tiene:
+
+$$
+y=\frac{2}{3}x+\frac{0.90}{3}
+$$
+
+y por tanto:
+
+$$
+\underline{y=0.667x+0.300}
+$$
+
+**Aplicación numérica:** tomando $x=0.30$:
+
+$$
+y=0.667(0.30)+0.300
+$$
+
+$$
+y=0.200+0.300
+$$
+
+por lo que:
+
+$$
+\underline{y=0.500}
+$$
+
+El punto $(0.30,0.50)$ pertenece a la recta de rectificación.
+
+### Primer punto
+
+Para:
+
+$$
+x=0
+$$
+
+se obtiene:
+
+$$
+y=0.300
+$$
+
+por lo que la recta pasa por:
+
+$$
+\underline{(0,0.300)}
+$$
+
+**Aplicación numérica:** sustituyendo directamente:
+
+$$
+y=0.667(0)+0.300=0.300
+$$
+
+### Segundo punto
+
+La recta también pasa por:
+
+$$
+\underline{(x_D,x_D)}
+$$
+
+En este caso:
+
+$$
+\underline{(0.90,0.90)}
+$$
+
+**Aplicación numérica:** sustituyendo $x=0.90$:
+
+$$
+y=0.667(0.90)+0.300
+$$
+
+$$
+y\approx0.600+0.300=0.900
+$$
+
+por lo que se verifica el punto:
+
+$$
+\underline{(0.90,0.90)}
+$$
+
+Los dos puntos permiten construir la recta.
+
+---
+
+# 6. Condición de alimentación y parámetro q
+
+
+### Estado físico de la alimentación
+
+La alimentación puede entrar como líquido subenfriado, líquido saturado, mezcla líquido-vapor, vapor saturado o vapor sobrecalentado.
+
+El parámetro:
+
+$$
+\underline{q}
+$$
+
+describe esta condición dentro del modelo.
+
+### Casos principales
+
+Para líquido saturado:
+
+$$
+\underline{q=1}
+$$
+
+Para vapor saturado:
+
+$$
+\underline{q=0}
+$$
+
+Para una mezcla líquido-vapor:
+
+$$
+\underline{0<q<1}
+$$
+
+**Aplicación numérica:** una alimentación con:
+
+$$
+q=0.40
+$$
+
+satisface:
+
+$$
+0<0.40<1
+$$
+
+por lo que corresponde a una **mezcla líquido-vapor** dentro del modelo.
+
+### Estados adicionales
+
+También pueden presentarse:
+
+$$
+q>1
+$$
+
+para líquido subenfriado, y:
+
+$$
+q<0
+$$
+
+para vapor sobrecalentado.
+
+**Aplicación numérica:** si:
+
+$$
+q=1.20
+$$
+
+entonces:
+
+$$
+1.20>1
+$$
+
+y la alimentación corresponde al caso de **líquido subenfriado**.
+
+Si:
+
+$$
+q=-0.20
+$$
+
+entonces:
+
+$$
+-0.20<0
+$$
+
+y corresponde al caso de **vapor sobrecalentado**.
+
+El valor de $q$ determinará la orientación de la línea de alimentación.
+
+---
+
+# 7. Línea q
+
+
+### Ecuación
+
+La línea de alimentación está dada por:
+
+$$
+\underline{y=\frac{q}{q-1}x-\frac{z_F}{q-1}}
+$$
+
+donde $z_F$ representa la composición global de la alimentación.
+
+Su pendiente es:
+
+$$
+\underline{m_q=\frac{q}{q-1}}
+$$
+
+**Aplicación numérica:** para:
+
+$$
+q=0.50,\qquad z_F=0.40
+$$
+
+la pendiente es:
+
+$$
+m_q=\frac{0.50}{0.50-1}=-1
+$$
+
+y la ecuación queda:
+
+$$
+y=-x+0.80
+$$
+
+por tanto:
+
+$$
+\underline{y=-x+0.80}
+$$
+
+### Líquido saturado
+
+Cuando:
+
+$$
+q=1
+$$
+
+la línea es vertical:
+
+$$
+\underline{x=z_F}
+$$
+
+**Aplicación numérica:** si:
+
+$$
+z_F=0.40
+$$
+
+entonces:
+
+$$
+\underline{x=0.40}
+$$
+
+Todos los puntos de la línea $q$ presentan la misma coordenada $x=0.40$.
+
+### Vapor saturado
+
+Cuando:
+
+$$
+q=0
+$$
+
+la línea es horizontal:
+
+$$
+\underline{y=z_F}
+$$
+
+**Aplicación numérica:** para:
+
+$$
+z_F=0.40
+$$
+
+se obtiene:
+
+$$
+\underline{y=0.40}
+$$
+
+### Alimentación parcialmente vaporizada
+
+Para:
+
+$$
+0<q<1
+$$
+
+la pendiente de la línea $q$ es negativa.
+
+**Aplicación numérica:** para $q=0.25$:
+
+$$
+m_q=\frac{0.25}{0.25-1}
+$$
+
+$$
+m_q=\frac{0.25}{-0.75}
+$$
+
+por tanto:
+
+$$
+\underline{m_q=-0.333}
+$$
+
+En todos estos casos, la línea pasa por:
+
+$$
+\underline{(z_F,z_F)}
+$$
+
+sobre la diagonal.
+
+Para $z_F=0.40$, el punto común es:
+
+$$
+\underline{(0.40,0.40)}
+$$
+
+---
+
+# 8. Recta de agotamiento
+
+
+### Ecuación general
+
+En la sección de agotamiento:
+
+$$
+\underline{y=\frac{\bar L}{\bar V}x-\frac{B}{\bar V}x_B}
+$$
+
+donde $\bar L$ y $\bar V$ representan los flujos internos de líquido y vapor de esta sección.
+
+**Aplicación numérica:** si:
+
+$$
+\bar L=150,\qquad \bar V=100,\qquad B=50,\qquad x_B=0.10
+$$
+
+entonces:
+
+$$
+y=\frac{150}{100}x-\frac{50}{100}(0.10)
+$$
+
+por lo que:
+
+$$
+\underline{y=1.50x-0.05}
+$$
+
+Para $x=0.30$:
+
+$$
+y=1.50(0.30)-0.05=0.40
+$$
+
+### Punto de fondos
+
+La recta de agotamiento pasa por:
+
+$$
+\underline{(x_B,x_B)}
+$$
+
+situado sobre la diagonal.
+
+**Aplicación numérica:** si:
+
+$$
+x_B=0.10
+$$
+
+el punto de fondos es:
+
+$$
+\underline{(0.10,0.10)}
+$$
+
+Comprobando con la ecuación anterior:
+
+$$
+y=1.50(0.10)-0.05=0.10
+$$
+
+### Construcción gráfica
+
+La recta también pasa por la intersección entre la recta de rectificación y la línea $q$.
+
+Por ello puede construirse uniendo ese punto con:
+
+$$
+(x_B,x_B)
+$$
+
+sin calcular explícitamente todos los flujos internos.
+
+**Aplicación numérica:** si la intersección rectificación–$q$ es:
+
+$$
+(0.40,0.567)
+$$
+
+y:
+
+$$
+(x_B,x_B)=(0.10,0.10)
+$$
+
+la pendiente de la recta que une ambos puntos es:
+
+$$
+m=\frac{0.567-0.10}{0.40-0.10}
+$$
+
+por tanto:
+
+$$
+\underline{m\approx1.557}
+$$
+
+---
+
+# 9. Estructura gráfica completa
+
+
+### Cinco elementos
+
+El diagrama contiene la **curva de equilibrio**, la diagonal:
+
+$$
+\underline{y=x}
+$$
+
+la **recta de rectificación**, la **línea $q$** y la **recta de agotamiento**.
+
+**Aplicación numérica:** para $x=0.40$, la diagonal proporciona:
+
+$$
+y=x=0.40
+$$
+
+por lo que el punto correspondiente es:
+
+$$
+\underline{(0.40,0.40)}
+$$
+
+Este punto sirve como referencia para comparar la diagonal con las demás líneas y la curva de equilibrio.
+
+### Cambio de sección
+
+Por encima de la región de alimentación se utiliza la recta de rectificación.
+
+Por debajo se utiliza la recta de agotamiento.
+
+La zona de intersección está asociada con la alimentación.
+
+---
+
+# 10. Construcción gráfica de una etapa
+
+
+### Punto inicial
+
+La construcción comienza aproximadamente en:
+
+$$
+\underline{(x_D,x_D)}
+$$
+
+sobre la diagonal.
+
+**Aplicación numérica:** para:
+
+$$
+x_D=0.90
+$$
+
+el escalonamiento comienza en:
+
+$$
+\underline{(0.90,0.90)}
+$$
+
+### Movimiento horizontal
+
+Desde el punto inicial se avanza horizontalmente hasta la curva de equilibrio.
+
+Este movimiento utiliza el **equilibrio vapor-líquido**.
+
+**Aplicación numérica:** si se parte de $y=0.90$ y la curva de equilibrio indica que ese vapor está en equilibrio con:
+
+$$
+x=0.75
+$$
+
+el movimiento horizontal va aproximadamente desde:
+
+$$
+(0.90,0.90)
+$$
+
+hasta:
+
+$$
+\underline{(0.75,0.90)}
+$$
+
+### Movimiento vertical
+
+Desde la curva de equilibrio se avanza verticalmente hasta la recta de operación.
+
+Este movimiento representa la relación establecida por el **balance de materia**.
+
+**Aplicación numérica:** utilizando la recta:
+
+$$
+y=0.667x+0.300
+$$
+
+para:
+
+$$
+x=0.75
+$$
+
+se obtiene:
+
+$$
+y=0.667(0.75)+0.300
+$$
+
+por tanto:
+
+$$
+\underline{y\approx0.800}
+$$
+
+El movimiento vertical termina aproximadamente en:
+
+$$
+\underline{(0.75,0.80)}
+$$
+
+### Repetición
+
+El proceso continúa:
+
+$$
+\text{horizontal}\rightarrow\text{vertical}
+$$
+
+de forma repetida, produciendo una estructura en forma de escalera.
+
+---
+
+# 11. Conteo de etapas
+
+
+### Recorrido
+
+Se comienza en $x_D$ y se construyen sucesivamente los escalones.
+
+Mientras la construcción permanece por encima de la alimentación, los segmentos verticales terminan en la recta de rectificación.
+
+### Cambio de recta
+
+Al cruzar la región de alimentación, la construcción pasa a utilizar la recta de agotamiento.
+
+Se continúa hasta alcanzar $x_B$.
+
+### Número de etapas
+
+Si se cuentan, por ejemplo:
+
+$$
+1,2,3,\ldots,8
+$$
+
+se obtiene aproximadamente:
+
+$$
+\underline{N=8\text{ etapas teóricas}}
+$$
+
+**Aplicación numérica:** si durante el escalonamiento se identifican ocho movimientos completos representativos de etapas desde $x_D$ hasta $x_B$, entonces:
+
+$$
+\underline{N=8}
+$$
+
+Si el criterio utilizado incluye un rehervidor parcial como etapa de equilibrio, debe considerarse su contribución dentro del conteo correspondiente.
+
+### Condensador y rehervidor
+
+Un **rehervidor parcial** normalmente se considera una etapa de equilibrio.
+
+Un **condensador total** normalmente no se cuenta como etapa de equilibrio porque no genera dos corrientes líquido-vapor de salida en equilibrio.
+
+---
+
+# 12. Integración del procedimiento
+
+
+### Especificaciones
+
+Considérese:
+
+$$
+z_F=0.40,\qquad x_D=0.90,\qquad x_B=0.10
+$$
+
+$$
+R=2,\qquad q=1
+$$
+
+### Recta de rectificación
+
+Se obtiene:
+
+$$
+\underline{y=0.667x+0.300}
+$$
+
+**Aplicación numérica:** para $x=0.40$:
+
+$$
+y=0.667(0.40)+0.300
+$$
+
+$$
+y=0.2668+0.300
+$$
+
+por tanto:
+
+$$
+\underline{y\approx0.567}
+$$
+
+### Línea de alimentación
+
+Como:
+
+$$
+q=1
+$$
+
+la línea es:
+
+$$
+\underline{x=0.40}
+$$
+
+Su intersección con la recta superior es aproximadamente:
+
+$$
+\underline{(0.40,0.567)}
+$$
+
+**Aplicación numérica:** sustituyendo $x=0.40$ en la recta superior:
+
+$$
+y=0.667(0.40)+0.300\approx0.567
+$$
+
+por lo que se confirma:
+
+$$
+\underline{(x,y)=(0.40,0.567)}
+$$
+
+### Recta inferior
+
+La recta de agotamiento se construye conectando:
+
+$$
+(0.40,0.567)
+$$
+
+con:
+
+$$
+(0.10,0.10)
+$$
+
+**Aplicación numérica:** su pendiente es:
+
+$$
+m=\frac{0.567-0.10}{0.40-0.10}
+$$
+
+$$
+m=\frac{0.467}{0.30}
+$$
+
+por tanto:
+
+$$
+\underline{m\approx1.557}
+$$
+
+Usando $(0.10,0.10)$:
+
+$$
+y-0.10=1.557(x-0.10)
+$$
+
+y aproximadamente:
+
+$$
+\underline{y=1.557x-0.056}
+$$
+
+### Información todavía necesaria
+
+Para obtener un número concreto de etapas se necesita además la **curva de equilibrio**.
+
+Los valores $x_D$, $x_B$, $z_F$, $R$ y $q$ no bastan por sí solos para determinar $N$.
+
+---
+
+# 13. Reflujo total
+
+
+### Condición límite
+
+En reflujo total, todo el condensado regresa a la columna:
+
+$$
+D=0
+$$
+
+Como:
+
+$$
+R=\frac{L}{D}
+$$
+
+entonces:
+
+$$
+\underline{R\rightarrow\infty}
+$$
+
+**Aplicación numérica:** si se mantiene:
+
+$$
+L=100\ \text{kmol/h}
+$$
+
+y se reduce progresivamente el destilado, por ejemplo:
+
+$$
+D=10,\quad1,\quad0.1\ \text{kmol/h}
+$$
+
+se obtiene:
+
+$$
+R=10,\quad100,\quad1000
+$$
+
+respectivamente. Así, conforme:
+
+$$
+D\rightarrow0
+$$
+
+se cumple:
+
+$$
+\underline{R\rightarrow\infty}
+$$
+
+### Efecto sobre la recta
+
+Cuando:
+
+$$
+R\rightarrow\infty
+$$
+
+se cumple:
+
+$$
+\frac{R}{R+1}\rightarrow1
+$$
+
+y:
+
+$$
+\frac{x_D}{R+1}\rightarrow0
+$$
+
+Por tanto:
+
+$$
+\underline{y=x}
+$$
+
+**Aplicación numérica:** para:
+
+$$
+R=100,\qquad x_D=0.90
+$$
+
+la pendiente es:
+
+$$
+\frac{100}{101}\approx0.990
+$$
+
+y la intersección:
+
+$$
+\frac{0.90}{101}\approx0.0089
+$$
+
+La recta es aproximadamente:
+
+$$
+y=0.990x+0.0089
+$$
+
+muy próxima a:
+
+$$
+\underline{y=x}
+$$
+
+### Número mínimo de etapas
+
+En esta condición se obtiene:
+
+$$
+\underline{N=N_{\min}}
+$$
+
+para una separación especificada.
+
+**Aplicación numérica:** si el escalonamiento realizado bajo reflujo total proporciona seis etapas, entonces:
+
+$$
+\underline{N_{\min}=6}
+$$
+
+para esa separación y esos datos de equilibrio.
+
+Sin embargo, en la operación límite no se retira destilado como producto.
+
+---
+
+# 14. Reflujo mínimo
+
+
+### Reducción del reflujo
+
+Al reducir progresivamente $R$, la recta de operación se aproxima a la curva de equilibrio.
+
+### Punto de estrangulamiento
+
+En el límite aparece una región donde la recta y la curva se encuentran o se aproximan de tal manera que los escalones se vuelven extremadamente pequeños.
+
+Esta situación se denomina **pinch** o punto de estrangulamiento.
+
+### Consecuencia
+
+En la condición:
+
+$$
+\underline{R=R_{\min}}
+$$
+
+el número ideal de etapas tiende a:
+
+$$
+\underline{N\rightarrow\infty}
+$$
+
+Por ello:
+
+$$
+\underline{R_{\min}\Rightarrow N\rightarrow\infty}
+$$
+
+**Aplicación numérica:** si para una separación determinada se obtiene:
+
+$$
+R_{\min}=1.50
+$$
+
+operar exactamente con:
+
+$$
+R=1.50
+$$
+
+corresponde al límite ideal donde:
+
+$$
+\underline{N\rightarrow\infty}
+$$
+
+Por ello debe seleccionarse un reflujo de operación mayor que $1.50$.
+
+---
+
+# 15. Cálculo gráfico de Rmín
+
+
+### Alimentación líquida saturada
+
+Para:
+
+$$
+q=1
+$$
+
+la línea de alimentación es:
+
+$$
+x=z_F
+$$
+
+**Aplicación numérica:** si:
+
+$$
+z_F=0.40
+$$
+
+entonces:
+
+$$
+\underline{x=0.40}
+$$
+
+### Punto de pinch
+
+La intersección entre la línea $q$ y la curva de equilibrio se representa como:
+
+$$
+(x_p,y_p)
+$$
+
+En la condición límite, la recta de rectificación pasa aproximadamente por este punto y por:
+
+$$
+(x_D,x_D)
+$$
+
+**Aplicación numérica:** supóngase que los datos de equilibrio proporcionan:
+
+$$
+(x_p,y_p)=(0.40,0.60)
+$$
+
+y que:
+
+$$
+x_D=0.90
+$$
+
+Los dos puntos utilizados para obtener la recta límite son:
+
+$$
+(0.40,0.60)
+$$
+
+y:
+
+$$
+(0.90,0.90)
+$$
+
+### Pendiente límite
+
+La pendiente es:
+
+$$
+m_{\min}=\frac{x_D-y_p}{x_D-x_p}
+$$
+
+y también:
+
+$$
+m_{\min}=\frac{R_{\min}}{R_{\min}+1}
+$$
+
+**Aplicación numérica:** utilizando:
+
+$$
+x_D=0.90,\qquad x_p=0.40,\qquad y_p=0.60
+$$
+
+se obtiene:
+
+$$
+m_{\min}=\frac{0.90-0.60}{0.90-0.40}
+$$
+
+$$
+m_{\min}=\frac{0.30}{0.50}
+$$
+
+por tanto:
+
+$$
+\underline{m_{\min}=0.60}
+$$
+
+### Obtención de Rmín
+
+Despejando:
+
+$$
+\underline{R_{\min}=\frac{m_{\min}}{1-m_{\min}}}
+$$
+
+**Aplicación numérica:** para:
+
+$$
+m_{\min}=0.60
+$$
+
+se obtiene:
+
+$$
+R_{\min}=\frac{0.60}{1-0.60}
+$$
+
+$$
+R_{\min}=\frac{0.60}{0.40}
+$$
+
+por tanto:
+
+$$
+\underline{R_{\min}=1.50}
+$$
+
+En sistemas con equilibrios más complejos pueden presentarse otros puntos de pinch, por lo que debe examinarse toda la construcción.
+
+---
+
+# 16. Reflujo de operación
+
+
+### Región de operación
+
+Los dos extremos son:
+
+$$
+R=R_{\min}
+$$
+
+y:
+
+$$
+R\rightarrow\infty
+$$
+
+La operación se sitúa entre ellos:
+
+$$
+\underline{R_{\min}<R_{\text{op}}<\infty}
+$$
+
+**Aplicación numérica:** si:
+
+$$
+R_{\min}=1.50
+$$
+
+un valor:
+
+$$
+R_{\text{op}}=2.00
+$$
+
+satisface:
+
+$$
+1.50<2.00<\infty
+$$
+
+y se encuentra dentro de la región de operación.
+
+### Estimaciones iniciales
+
+El material presenta como ejemplos de criterios preliminares:
+
+$$
+R_{\text{op}}=1.2R_{\min}
+$$
+
+o:
+
+$$
+R_{\text{op}}=1.5R_{\min}
+$$
+
+Estos valores son **criterios iniciales y no reglas universales**.
+
+**Aplicación numérica:** si:
+
+$$
+R_{\min}=1.50
+$$
+
+para el primer criterio:
+
+$$
+R_{\text{op}}=1.2(1.50)
+$$
+
+por tanto:
+
+$$
+\underline{R_{\text{op}}=1.80}
+$$
+
+Para el segundo:
+
+$$
+R_{\text{op}}=1.5(1.50)
+$$
+
+por tanto:
+
+$$
+\underline{R_{\text{op}}=2.25}
+$$
+
+Así, $1.80$ y $2.25$ pueden utilizarse como valores preliminares para posteriores evaluaciones de diseño.
+
+### Factores de selección
+
+El valor conveniente depende de factores como costos de equipo, energía, propiedades de la mezcla y capacidad hidráulica.
+
+Por tanto, elegir $R_{\text{op}}$ requiere considerar más que el número de etapas.
+
+---
+
+# 17. Reflujo óptimo
+
+
+### Reflujo próximo al mínimo
+
+Cuando:
+
+$$
+R\rightarrow R_{\min}
+$$
+
+entonces:
+
+$$
+N\uparrow
+$$
+
+Se necesitan muchas etapas, lo que puede conducir a una columna más alta y costosa.
+
+**Aplicación numérica:** supóngase que:
+
+$$
+R_{\min}=1.50
+$$
+
+y que un análisis gráfico proporciona de manera ilustrativa:
+
+$$
+R=1.60\Rightarrow N=20
+$$
+
+mientras que para un reflujo mayor se obtiene:
+
+$$
+R=2.20\Rightarrow N=12
+$$
+
+El ejemplo muestra el comportamiento general: al acercarse $R$ a $R_{\min}$, aumenta el número de etapas requerido.
+
+### Reflujo elevado
+
+Cuando:
+
+$$
+R\uparrow
+$$
+
+generalmente:
+
+$$
+N\downarrow
+$$
+
+pero aumentan los flujos internos.
+
+Esto puede incrementar $Q_R$, $Q_C$ y el diámetro requerido de la columna.
+
+**Aplicación numérica:** si un aumento del reflujo de:
+
+$$
+R=2
+$$
+
+a:
+
+$$
+R=3
+$$
+
+reduce, de manera ilustrativa, el requerimiento de:
+
+$$
+N=12
+$$
+
+a:
+
+$$
+N=9
+$$
+
+se consiguen menos etapas, pero a costa de una mayor circulación interna de líquido y vapor.
+
+### Compromiso económico
+
+El diseño debe considerar conjuntamente:
+
+$$
+\underline{\text{costo de capital}+\text{costo de energía}}
+$$
+
+El **reflujo óptimo** no corresponde simplemente al menor número de etapas ni al menor consumo energético considerado aisladamente.
+
+**Aplicación numérica:** si de manera simplificada una alternativa presenta:
+
+$$
+C_{\text{capital}}=600\,000
+$$
+
+y:
+
+$$
+C_{\text{energía}}=300\,000
+$$
+
+el costo combinado considerado sería:
+
+$$
+C_{\text{total}}=600\,000+300\,000
+$$
+
+por tanto:
+
+$$
+\underline{C_{\text{total}}=900\,000}
+$$
+
+Este cálculo simplificado ilustra por qué ambos componentes deben evaluarse conjuntamente.
+
+---
+
+# 18. Relación entre R y N
+
+
+### Límite de reflujo mínimo
+
+Cuando:
+
+$$
+R\rightarrow R_{\min}
+$$
+
+se obtiene:
+
+$$
+\underline{N\rightarrow\infty}
+$$
+
+**Aplicación numérica:** si:
+
+$$
+R_{\min}=1.50
+$$
+
+valores como:
+
+$$
+R=1.60,\quad1.55,\quad1.51
+$$
+
+representan una aproximación progresiva al mínimo. Conceptualmente, conforme $R$ se acerca a $1.50$, el número de etapas requerido aumenta cada vez más.
+
+### Límite de reflujo total
+
+Cuando:
+
+$$
+R\rightarrow\infty
+$$
+
+se obtiene:
+
+$$
+\underline{N\rightarrow N_{\min}}
+$$
+
+**Aplicación numérica:** si para una separación:
+
+$$
+N_{\min}=6
+$$
+
+al utilizar reflujos cada vez mayores podrían obtenerse, de manera ilustrativa:
+
+$$
+R=2\Rightarrow N=12
+$$
+
+$$
+R=5\Rightarrow N=8
+$$
+
+$$
+R=20\Rightarrow N\approx6
+$$
+
+mostrando la tendencia:
+
+$$
+\underline{N\rightarrow6}
+$$
+
+### Región práctica
+
+Entre los extremos:
+
+$$
+\underline{R_{\min}<R<\infty}
+$$
+
+se encuentra la región práctica de diseño.
+
+**Aplicación numérica:** para:
+
+$$
+R_{\min}=1.50
+$$
+
+los valores:
+
+$$
+R=1.80,\qquad R=2.00,\qquad R=2.25
+$$
+
+se encuentran en la región:
+
+$$
+\underline{1.50<R<\infty}
+$$
+
+El número de etapas y el reflujo no pueden seleccionarse independientemente: reducir uno generalmente exige aumentar el otro.
+
+---
+
+# 19. Procedimiento completo de McCabe–Thiele
+
+
+### Datos necesarios
+
+Un problema típico proporciona:
+
+$$
+z_F,\qquad x_D,\qquad x_B,\qquad q,\qquad R
+$$
+
+además de los datos de equilibrio $x-y$.
+
+**Aplicación numérica:** un conjunto de datos podría ser:
+
+$$
+z_F=0.40,\qquad x_D=0.90,\qquad x_B=0.10
+$$
+
+$$
+q=1,\qquad R=2
+$$
+
+Estos datos permiten construir las líneas de operación, pero todavía se requieren los datos de equilibrio para efectuar el escalonamiento.
+
+### Construcción del equilibrio
+
+Primero se preparan los ejes $x-y$, se dibuja:
+
+$$
+y=x
+$$
+
+y se incorpora:
+
+$$
+y=y^*(x)
+$$
+
+Después se marcan $x_D$, $z_F$ y $x_B$.
+
+**Aplicación numérica:** con:
+
+$$
+x_D=0.90,\qquad z_F=0.40,\qquad x_B=0.10
+$$
+
+los puntos correspondientes sobre la diagonal son:
+
+$$
+(0.90,0.90),\qquad(0.40,0.40),\qquad(0.10,0.10)
+$$
+
+### Construcción de la recta superior
+
+Se utiliza:
+
+$$
+\underline{y=\frac{R}{R+1}x+\frac{x_D}{R+1}}
+$$
+
+para obtener la recta de rectificación.
+
+**Aplicación numérica:** con:
+
+$$
+R=2,\qquad x_D=0.90
+$$
+
+se obtiene:
+
+$$
+y=\frac{2}{3}x+\frac{0.90}{3}
+$$
+
+y:
+
+$$
+\underline{y=0.667x+0.300}
+$$
+
+### Construcción de la línea q
+
+Se utiliza:
+
+$$
+\underline{y=\frac{q}{q-1}x-\frac{z_F}{q-1}}
+$$
+
+La intersección entre esta línea y la recta de rectificación identifica el punto necesario para construir la recta inferior.
+
+**Aplicación numérica:** para una alimentación líquida saturada:
+
+$$
+q=1,\qquad z_F=0.40
+$$
+
+la expresión general se trata mediante su caso límite y la línea es:
+
+$$
+\underline{x=0.40}
+$$
+
+Con la recta de rectificación:
+
+$$
+y=0.667x+0.300
+$$
+
+se obtiene:
+
+$$
+y=0.667(0.40)+0.300\approx0.567
+$$
+
+por tanto, la intersección es:
+
+$$
+\underline{(0.40,0.567)}
+$$
+
+### Construcción de la recta inferior
+
+El punto de intersección anterior se conecta con:
+
+$$
+(x_B,x_B)
+$$
+
+para obtener la recta de agotamiento.
+
+**Aplicación numérica:** con:
+
+$$
+x_B=0.10
+$$
+
+se conecta:
+
+$$
+(0.40,0.567)
+$$
+
+con:
+
+$$
+(0.10,0.10)
+$$
+
+La pendiente es:
+
+$$
+m=\frac{0.567-0.10}{0.40-0.10}\approx1.557
+$$
+
+y la recta queda aproximadamente:
+
+$$
+\underline{y=1.557x-0.056}
+$$
+
+### Escalonamiento
+
+Se comienza en:
+
+$$
+(x_D,x_D)
+$$
+
+y se alternan movimientos horizontales hacia la curva de equilibrio y verticales hacia las rectas de operación.
+
+Se continúa hasta alcanzar $x_B$.
+
+**Aplicación numérica:** para:
+
+$$
+x_D=0.90
+$$
+
+el punto inicial es:
+
+$$
+\underline{(0.90,0.90)}
+$$
+
+Si el primer movimiento horizontal encuentra la curva de equilibrio en:
+
+$$
+(0.75,0.90)
+$$
+
+la recta de rectificación proporciona para $x=0.75$:
+
+$$
+y=0.667(0.75)+0.300\approx0.800
+$$
+
+por lo que el primer movimiento vertical termina aproximadamente en:
+
+$$
+\underline{(0.75,0.80)}
+$$
+
+El procedimiento se repite hasta alcanzar la composición de fondos.
+
+### Conteo
+
+Finalmente se cuentan las etapas, considerando adecuadamente el tipo de condensador y rehervidor empleado.
+
+La lógica global queda resumida por:
+
+$$
+\underline{\text{Equilibrio}\rightarrow\text{Rectas de operación}\rightarrow\text{Etapas}\rightarrow N}
+$$
+
+**Aplicación numérica:** si el escalonamiento completo desde:
+
+$$
+x_D=0.90
+$$
+
+hasta:
+
+$$
+x_B=0.10
+$$
+
+produce ocho etapas teóricas bajo el criterio de conteo establecido, el resultado es:
+
+$$
+\underline{N=8\text{ etapas teóricas}}
+$$
