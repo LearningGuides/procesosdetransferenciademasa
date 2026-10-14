@@ -1,0 +1,370 @@
+---
+title: Ejercicios Método de McCabe–Thiele
+lessonNumber: 10
+---
+
+# Ejercicio 1
+Se desea destilar una mezcla líquida de benceno y tolueno en una torre de destilación fraccionada que opera a una presión de 101.3 kPa.
+
+La alimentación es de 100 kg mol/h, se encuentra en estado líquido y contiene 45 % mol de benceno y 55 % mol de tolueno. Esta mezcla ingresa a la torre a una temperatura de 327.6 K.
+
+Se requiere obtener un destilado con una composición de 95 % mol de benceno y 5 % mol de tolueno, así como un residuo que contenga 10 % mol de benceno y 90 % mol de tolueno.
+
+La relación de reflujo es de 4:1. La capacidad calorífica promedio de la alimentación es de 159 kJ/(kg mol·K), mientras que el calor latente promedio es de 32 099 kJ/kg mol.
+
+### Datos de equilibrio líquido-vapor para el sistema benceno-tolueno
+
+Presión del sistema: 101.325 kPa
+
+| Temperatura (K) | Fracción mol de benceno en líquido ($x_A$) | Fracción mol de benceno en vapor ($y_A$) |
+| --------------- | ---------------------------------------------- | -------------------------------------------- |
+| 353.3           | 1.000                                          | 1.000                                        |
+| 358.2           | 0.780                                          | 0.900                                        |
+| 363.2           | 0.581                                          | 0.777                                        |
+| 368.2           | 0.411                                          | 0.632                                        |
+| 373.2           | 0.258                                          | 0.456                                        |
+| 378.2           | 0.130                                          | 0.261                                        |
+| 383.8           | 0.000                                          | 0.000                                        |
+
+
+
+### Resolución paso a paso
+
+## Paso 1. Calcular los flujos de destilado y residuo
+
+Se aplica un balance global de materia:
+
+$$
+ F=D+B 
+$$
+
+Sustituyendo:
+
+$$
+ 100=D+B 
+$$
+
+Por lo tanto:
+
+$$
+ B=100-D 
+$$
+
+Ahora se realiza un balance de materia para el benceno:
+
+$$
+ Fz_F=Dx_D+Bx_B 
+$$
+
+Sustituyendo los valores:
+
+$$
+ 100(0.45)=D(0.95)+B(0.10) 
+$$
+
+$$
+ 45=0.95D+0.10(100-D) 
+$$
+
+$$
+ 45=0.95D+10-0.10D 
+$$
+
+$$
+ 35=0.85D 
+$$
+
+Despejando:
+
+$$
+ D=\frac{35}{0.85} 
+$$
+
+Flujo de destilado
+
+**$D=41.18\ \text{kg mol/h}$**
+
+Se calcula el residuo:
+
+$$
+ B=100-41.18 
+$$
+
+Flujo de residuo
+
+**$B=58.82\ \text{kg mol/h}$**
+
+## Paso 2. Determinar la condición térmica de la alimentación (q)
+
+La alimentación ingresa como líquido subenfriado, ya que su temperatura es inferior a la temperatura de burbuja de la mezcla.
+
+Para calcular $q$, se utiliza:
+
+$$
+ q=1+\frac{C_p(T_b-T_F)}{\lambda} 
+$$
+
+Donde $T_b$ es la temperatura de burbuja de la alimentación.
+
+### 2.1. Calcular la temperatura de burbuja
+
+De la tabla de equilibrio, para $z_F=0.45$, se tienen los siguientes datos:
+
+| $x_A$ | Temperatura (K) |
+| --------- | --------------- |
+| 0.411     | 368.2           |
+| 0.581     | 363.2           |
+
+Se realiza una interpolación lineal:
+
+$$
+ T_b=368.2+\frac{0.45-0.411}{0.581-0.411}(363.2-368.2) 
+$$
+
+$$
+ T_b=368.2+\frac{0.039}{0.170}(-5) 
+$$
+
+$$
+ \boxed{T_b=367.05\ \text{K}} 
+$$
+
+### 2.2. Calcular el valor de q
+
+$$
+ q=1+\frac{159(367.05-327.6)}{32099} 
+$$
+
+$$
+ q=1+\frac{6272.55}{32099} 
+$$
+
+$$
+ \boxed{q=1.1954} 
+$$
+
+Como $q>1$, se confirma que la alimentación es un líquido subenfriado.
+
+## Paso 3. Calcular la línea de operación de enriquecimiento
+
+La ecuación de la línea de operación superior es:
+
+$$
+ y=\frac{R}{R+1}x+\frac{x_D}{R+1} 
+$$
+
+Con $R=4$ y $x_D=0.95$:
+
+$$
+ y=\frac{4}{4+1}x+\frac{0.95}{4+1} 
+$$
+
+Por lo tanto:
+
+$$
+ \boxed{y=0.8x+0.19} 
+$$
+
+Esta es la ecuación de la línea de operación de la sección de enriquecimiento.
+
+## Paso 4. Calcular la línea de alimentación (línea q)
+
+La ecuación de la línea de alimentación es:
+
+$$
+ y=\frac{q}{q-1}x-\frac{z_F}{q-1} 
+$$
+
+Sustituyendo:
+
+$$
+ y=\frac{1.1954}{1.1954-1}x-\frac{0.45}{1.1954-1} 
+$$
+
+Se obtiene aproximadamente:
+
+$$
+ \boxed{y=6.117x-2.303} 
+$$
+
+### 4.1. Determinar la intersección con la línea de enriquecimiento
+
+Se igualan ambas ecuaciones:
+
+$$
+ 0.8x+0.19=6.117x-2.303 
+$$
+
+$$
+ 2.493=5.317x 
+$$
+
+$$
+ \boxed{x_q=0.4688} 
+$$
+
+Sustituyendo en la línea de enriquecimiento:
+
+$$
+ y_q=0.8(0.4688)+0.19 
+$$
+
+$$
+ \boxed{y_q=0.5650} 
+$$
+
+El punto de intersección es:
+
+$$
+ \boxed{(x_q,y_q)=(0.4688,\ 0.5650)} 
+$$
+
+## Paso 5. Calcular la línea de operación de agotamiento
+
+La línea inferior pasa por dos puntos:
+
+- El punto de intersección de las líneas de alimentación y enriquecimiento: $(0.4688,\ 0.5650)$.
+- El punto correspondiente al residuo: $(0.10,\ 0.10)$.
+
+Se utiliza la ecuación de la recta:
+
+$$
+ y=mx+b 
+$$
+
+Se calcula la pendiente:
+
+$$
+ m=\frac{0.5650-0.10}{0.4688-0.10} 
+$$
+
+$$
+ \boxed{m=1.2609} 
+$$
+
+Ahora se determina la ordenada al origen:
+
+$$
+ b=y-mx 
+$$
+
+$$
+ b=0.10-1.2609(0.10) 
+$$
+
+$$
+ b=-0.02609 
+$$
+
+Por lo tanto, la línea de operación de agotamiento es:
+
+$$
+ \boxed{y=1.2609x-0.02609} 
+$$
+
+## Paso 6. Determinar el número de etapas teóricas
+
+Se utiliza el método de McCabe-Thiele, realizando escalones entre la curva de equilibrio y las líneas de operación.
+
+Para cada etapa:
+
+1. Se parte de la composición del vapor $y$.
+2. Se obtiene la composición del líquido $x$ mediante interpolación en la tabla de equilibrio.
+3. Se calcula el siguiente valor de $y$ mediante la línea de operación correspondiente.
+4. Se repite hasta alcanzar $x_B=0.10$.
+
+Los resultados son:
+
+| Etapa | $y$ inicial | $x$ de equilibrio | Sección         |
+| ----- | --------------- | --------------------- | --------------- |
+| 1     | 0.9500          | 0.8900                | Enriquecimiento |
+| 2     | 0.9020          | 0.7844                | Enriquecimiento |
+| 3     | 0.8175          | 0.6466                | Enriquecimiento |
+| 4     | 0.7072          | 0.4992                | Enriquecimiento |
+| 5     | 0.5894          | 0.3739                | Alimentación    |
+| 6     | 0.4454          | 0.2511                | Agotamiento     |
+| 7     | 0.2905          | 0.1494                | Agotamiento     |
+| 8     | 0.1622          | 0.0808                | Agotamiento     |
+
+En la octava etapa se obtiene una composición de líquido de 0.0808, inferior a la composición requerida del residuo, $x_B=0.10$.
+
+Por lo tanto, el procedimiento gráfico requiere aproximadamente 8 etapas teóricas, contando el rehervidor como una etapa de equilibrio y suponiendo un condensador total.
+
+## Paso 7. Determinar el plato de alimentación
+
+El cambio de la línea de enriquecimiento a la línea de agotamiento ocurre en la quinta etapa.
+
+Por lo tanto:
+
+$$
+ \boxed{\text{Plato de alimentación}=5} 
+$$
+
+El conteo se realiza desde la parte superior de la columna, sin incluir el condensador total.
+
+## Paso 8. Calcular los flujos internos de líquido y vapor
+
+Para la sección de enriquecimiento:
+
+$$
+ L=RD=4(41.1765) 
+$$
+
+$$
+ \boxed{L=164.71\ \text{kg mol/h}} 
+$$
+
+$$
+ V=L+D=164.71+41.18 
+$$
+
+$$
+ \boxed{V=205.88\ \text{kg mol/h}} 
+$$
+
+Para la sección de agotamiento:
+
+$$
+ \overline L=L+qF 
+$$
+
+$$
+ \overline L=164.71+1.1954(100) 
+$$
+
+$$
+ \boxed{\overline L=284.25\ \text{kg mol/h}} 
+$$
+
+El vapor interno inferior se obtiene de:
+
+$$
+ \overline V=V+(q-1)F 
+$$
+
+$$
+ \overline V=205.88+0.1954(100) 
+$$
+
+$$
+ \boxed{\overline V=225.43\ \text{kg mol/h}} 
+$$
+
+## Resumen de resultados
+
+| Parámetro                 | Resultado               |
+| ------------------------- | ----------------------- |
+| Destilado $D$         | 41.18 kg mol/h          |
+| Residuo $B$           | 58.82 kg mol/h          |
+| Temperatura de burbuja    | 367.05 K                |
+| Condición térmica $q$ | 1.1954                  |
+| Línea de enriquecimiento  | $y=0.8x+0.19$       |
+| Línea de alimentación     | $y=6.117x-2.303$    |
+| Línea de agotamiento      | $y=1.2609x-0.02609$ |
+| Intersección de líneas    | (0.4688, 0.5650)        |
+| Número de etapas teóricas | 8                       |
+| Plato de alimentación     | 5                       |
+| Flujo líquido superior    | 164.71 kg mol/h         |
+| Flujo vapor superior      | 205.88 kg mol/h         |
+| Flujo líquido inferior    | 284.25 kg mol/h         |
+| Flujo vapor inferior      | 225.43 kg mol/h         |
